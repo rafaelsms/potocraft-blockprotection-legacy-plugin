@@ -1,0 +1,24 @@
+name: BlockProtection
+main: com.rafaelsms.blockprotection.BlockProtectionPlugin
+version: 2.0
+api-version: 1.16
+author: rafaelsms
+website: rafaelsms.com
+description: Protect your placed blocks and prevent griefers. Allows Faction-like gameplay.
+load: POSTWORLD
+permissions:
+  blockprotection.debug:
+    description: Allows you to check debug information of the blocks through an item.
+commands:
+  friends:
+    description: List people who can break and/or place your blocks and near your blocks.
+    permission: blockprotection.friends
+    aliases: [amizades]
+  addfriend:
+    description: Add a player to your friends list.
+    permission: blockprotection.friends.add
+    aliases: [addfriends, addamizade]
+  delfriend:
+    description: Remove a player from your friends list.
+    permission: blockprotection.friends.delete
+    aliases: [remfriend, delamizade, remamizade]
