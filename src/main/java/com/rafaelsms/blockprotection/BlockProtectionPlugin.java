@@ -47,9 +47,13 @@ public class BlockProtectionPlugin extends JavaPlugin {
 			config.setPassword(getConfig().getString(Config.DATABASE_PASSWORD.toString()));
 
 			// Additional configurations
+			config.addDataSourceProperty("rewriteBatchedStatements", "true");
+			config.addDataSourceProperty("cacheServerConfiguration", "true");
+			config.addDataSourceProperty("useServerPrepStmts", "true");
 			config.addDataSourceProperty("cachePrepStmts", "true");
 			config.addDataSourceProperty("prepStmtCacheSize", "250");
 			config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+			config.setMaximumPoolSize(getConfig().getInt(Config.DATABASE_POOL_SIZE.toString()));
 			dataSource = new HikariDataSource(config);
 
 			blocksDatabase = new BlocksDatabase(this, dataSource);

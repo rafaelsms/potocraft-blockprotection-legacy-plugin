@@ -3,6 +3,7 @@ config:
     url: jdbc:mysql://localhost/database
     user: user
     password: password
+    pool_size: 6
   lang:
     protection:
       nearby_blocks: "&cProtected block nearby"
