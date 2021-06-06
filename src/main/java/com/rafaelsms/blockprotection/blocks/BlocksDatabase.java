@@ -21,115 +21,52 @@ import java.util.UUID;
 @SuppressWarnings("FieldCanBeLocal")
 public class BlocksDatabase extends Database {
 
-	private final String SQL_CREATE_TABLE = """
-			  CREATE TABLE IF NOT EXISTS `blockprotection`.`blocks` (
-			    `world` BINARY(16) NOT NULL,
-			    `chunkX` INT NOT NULL,
-			    `chunkZ` INT NOT NULL,
-			    `x` INT NOT NULL,
-			    `y` INT NOT NULL,
-			    `z` INT NOT NULL,
-			    `lastModification` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-			    `owner` BINARY(16) NOT NULL,
-			    PRIMARY KEY (`world`, `x`, `y`, `z`),
-			    INDEX `chunkIndex` (`chunkX` ASC, `chunkZ` ASC, `world` ASC) VISIBLE);
-			  """;
-	private final String SQL_QUERY_BLOCKS_USER = """
-			  SELECT
-			      `blocks`.`owner`
-			  FROM `blockprotection`.`blocks`
-			  WHERE
-			      `blocks`.`world` = UUID_TO_BIN(?) AND
-			      `blocks`.`chunkX` BETWEEN ? AND ? AND
-			      `blocks`.`chunkZ` BETWEEN ? AND ? AND
-			      `blocks`.`x` BETWEEN ? AND ? AND
-			      `blocks`.`y` BETWEEN ? AND ? AND
-			      `blocks`.`z` BETWEEN ? AND ? AND
-			      `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY) AND
-			      `blocks`.`owner` != UUID_TO_BIN(?) AND
-			      UUID_TO_BIN(?) NOT IN (
-			          SELECT
-			              `friends`.`friend`
-			          FROM `blockprotection`.`friends`
-			          WHERE
-			              `friends`.`player` = `blocks`.`owner`
-			      )
-			  LIMIT 1;
-			  """;
-	private final String SQL_QUERY_BLOCKS_NO_USER = """
-			  SELECT
-			      `blocks`.`owner`
-			  FROM `blockprotection`.`blocks`
-			  WHERE
-			      `blocks`.`world` = UUID_TO_BIN(?) AND
-			      `blocks`.`chunkX` BETWEEN ? AND ? AND
-			      `blocks`.`chunkZ` BETWEEN ? AND ? AND
-			      `blocks`.`x` BETWEEN ? AND ? AND
-			      `blocks`.`y` BETWEEN ? AND ? AND
-			      `blocks`.`z` BETWEEN ? AND ? AND
-			      `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY)
-			  LIMIT 1;
-			  """;
-	private final String SQL_INSERT_BLOCK = """
-			  INSERT INTO `blockprotection`.`blocks`
-			  (`world`,
-			  `chunkX`, `chunkZ`,
-			  `x`, `y`, `z`,
-			  `owner`)
-			  VALUES
-			  (UUID_TO_BIN(?),
-			  ?, ?,
-			  ?, ?, ?,
-			  UUID_TO_BIN(?)) ON DUPLICATE KEY UPDATE
-			  `owner` = UUID_TO_BIN(?);
-			  """;
-	private final String SQL_DELETE_BLOCK = """
-			  DELETE IGNORE FROM `blockprotection`.`blocks`
-			  WHERE
-			      `world` = UUID_TO_BIN(?) AND
-			      `chunkX` = ? AND
-			      `chunkZ` = ? AND
-			      `x` = ? AND
-			      `y` = ? AND
-			      `z` = ?;
-			  """;
-	private final String SQL_SELECT_OWNER = """
-			  SELECT
-			      BIN_TO_UUID(`blocks`.`owner`),
-			      `blocks`.`lastModification`
-			  FROM `blockprotection`.`blocks`
-			  WHERE
-			      `blocks`.`world` = UUID_TO_BIN(?) AND
-			      `blocks`.`chunkX` = ? AND
-			      `blocks`.`chunkZ` = ? AND
-			      `blocks`.`x` = ? AND
-			      `blocks`.`y` = ? AND
-			      `blocks`.`z` = ?;
-			  """;
-
 	private final int protectionRadius;
 	private final int protectionChunkRadius;
 	private final int daysProtected;
 
 	public BlocksDatabase(BlockProtectionPlugin plugin, HikariDataSource dataSource) throws SQLException {
 		super(plugin, dataSource);
+
 		// Get configuration
 		protectionRadius = plugin.getConfig().getInt(Config.PROTECTION_PROTECTION_RADIUS.toString());
 		protectionChunkRadius = ((int) Math.ceil(protectionRadius / 16.0)) + 1;
 		daysProtected = plugin.getConfig().getInt(Config.PROTECTION_DAYS_PROTECTED.toString());
-		// Setup our database
-		setupSchema();
-	}
 
-	private void setupSchema() throws SQLException {
 		// Create blocks table
 		try (Connection connection = getConnection()) {
+			final String SQL_CREATE_TABLE = """
+					CREATE TABLE IF NOT EXISTS `blockprotection`.`blocks` (
+					  `world` BINARY(16) NOT NULL,
+					  `chunkX` INT NOT NULL,
+					  `chunkZ` INT NOT NULL,
+					  `x` INT NOT NULL,
+					  `y` INT NOT NULL,
+					  `z` INT NOT NULL,
+					  `lastModification` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+					  `owner` BINARY(16) NOT NULL,
+					  PRIMARY KEY (`world`, `x`, `y`, `z`),
+					  INDEX `chunkIndex` (`chunkX` ASC, `chunkZ` ASC, `world` ASC) VISIBLE);
+					""";
 			connection.prepareStatement(SQL_CREATE_TABLE).execute();
 		}
 	}
 
 	public ProtectedBlock getBlockData(@NotNull Location location) {
 		try (Connection connection = getConnection()) {
+			final String SQL_SELECT_OWNER = """
+					SELECT
+					    BIN_TO_UUID(`blocks`.`owner`),
+					    `blocks`.`lastModification`
+					FROM `blockprotection`.`blocks`
+					WHERE
+					    `blocks`.`world` = UUID_TO_BIN(?) AND
+					    `blocks`.`chunkX` = ? AND
+					    `blocks`.`chunkZ` = ? AND
+					    `blocks`.`x` = ? AND
+					    `blocks`.`y` = ? AND
+					    `blocks`.`z` = ?;
+					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_SELECT_OWNER);
 			// world
 			statement.setString(1, location.getWorld().getUID().toString());
@@ -160,6 +97,20 @@ public class BlocksDatabase extends Database {
 
 	public ProtectionResult isThereBlockingBlocksNearby(@NotNull Location location) {
 		try (Connection connection = getConnection()) {
+			final String SQL_QUERY_BLOCKS_NO_USER = """
+					SELECT
+					    `blocks`.`owner`
+					FROM `blockprotection`.`blocks`
+					WHERE
+					    `blocks`.`world` = UUID_TO_BIN(?) AND
+					    `blocks`.`chunkX` BETWEEN ? AND ? AND
+					    `blocks`.`chunkZ` BETWEEN ? AND ? AND
+					    `blocks`.`x` BETWEEN ? AND ? AND
+					    `blocks`.`y` BETWEEN ? AND ? AND
+					    `blocks`.`z` BETWEEN ? AND ? AND
+					    `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY)
+					LIMIT 1;
+					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_NO_USER);
 
 			// Prepare arguments:
@@ -200,6 +151,28 @@ public class BlocksDatabase extends Database {
 		}
 
 		try (Connection connection = getConnection()) {
+			final String SQL_QUERY_BLOCKS_USER = """
+					SELECT
+					    `blocks`.`owner`
+					FROM `blockprotection`.`blocks`
+					WHERE
+					    `blocks`.`world` = UUID_TO_BIN(?) AND
+					    `blocks`.`chunkX` BETWEEN ? AND ? AND
+					    `blocks`.`chunkZ` BETWEEN ? AND ? AND
+					    `blocks`.`x` BETWEEN ? AND ? AND
+					    `blocks`.`y` BETWEEN ? AND ? AND
+					    `blocks`.`z` BETWEEN ? AND ? AND
+					    `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY) AND
+					    `blocks`.`owner` != UUID_TO_BIN(?) AND
+					    UUID_TO_BIN(?) NOT IN (
+					        SELECT
+					            `friends`.`friend`
+					        FROM `blockprotection`.`friends`
+					        WHERE
+					            `friends`.`player` = `blocks`.`owner`
+					    )
+					LIMIT 1;
+					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_USER);
 
 			// Prepare arguments:
@@ -231,7 +204,7 @@ public class BlocksDatabase extends Database {
 			return result.next() ? ProtectionResult.PROTECTED : ProtectionResult.NOT_PROTECTED;
 		} catch (SQLException exception) {
 			plugin.getLogger().warning("Failed to select nearby blocks with player: %d".formatted(
-					  exception.getErrorCode()));
+					exception.getErrorCode()));
 			exception.printStackTrace();
 			return ProtectionResult.DATABASE_FAILURE;
 		}
@@ -239,6 +212,19 @@ public class BlocksDatabase extends Database {
 
 	public boolean insertBlock(Location location, UUID owner) {
 		try (Connection connection = getConnection()) {
+			final String SQL_INSERT_BLOCK = """
+					INSERT INTO `blockprotection`.`blocks`
+					(`world`,
+					`chunkX`, `chunkZ`,
+					`x`, `y`, `z`,
+					`owner`)
+					VALUES
+					(UUID_TO_BIN(?),
+					?, ?,
+					?, ?, ?,
+					UUID_TO_BIN(?)) ON DUPLICATE KEY UPDATE
+					`owner` = UUID_TO_BIN(?);
+					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_INSERT_BLOCK);
 			// World id
 			statement.setString(1, location.getWorld().getUID().toString());
@@ -263,6 +249,16 @@ public class BlocksDatabase extends Database {
 
 	public boolean deleteBlock(Location location) {
 		try (Connection connection = getConnection()) {
+			final String SQL_DELETE_BLOCK = """
+					DELETE IGNORE FROM `blockprotection`.`blocks`
+					WHERE
+					    `world` = UUID_TO_BIN(?) AND
+					    `chunkX` = ? AND
+					    `chunkZ` = ? AND
+					    `x` = ? AND
+					    `y` = ? AND
+					    `z` = ?;
+					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BLOCK);
 			// World id
 			statement.setString(1, location.getWorld().getUID().toString());
