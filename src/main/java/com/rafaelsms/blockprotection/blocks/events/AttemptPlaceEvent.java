@@ -18,8 +18,8 @@ public class AttemptPlaceEvent extends CancellableBlockEvent implements UserEven
 	 * Event that represents a block break event.
 	 * (This is a shortcut for every block place or change caused by players or entities).
 	 *
-	 * @param player  user that attempted to place the block
-	 * @param block block being placed
+	 * @param player user that attempted to place the block
+	 * @param block  block being placed
 	 */
 	public AttemptPlaceEvent(@Nullable Player player, @NotNull Block block) {
 		super(block);

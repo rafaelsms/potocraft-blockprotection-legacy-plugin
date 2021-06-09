@@ -31,14 +31,14 @@ public class DeleteCommand implements CommandExecutor {
 			UUID friend = plugin.getServer().getPlayerUniqueId(args[0]);
 			if (friend == null) {
 				sender.sendMessage(Lang.parseLegacyText(
-						  Lang.FRIENDS_FRIEND_NOT_FOUND.toString(plugin).formatted(args[0])));
+						Lang.FRIENDS_FRIEND_NOT_FOUND.toString(plugin).formatted(args[0])));
 				return true;
 			}
 
 			// Add to the database
 			if (plugin.getFriendsDatabase().removeFriend(((Player) sender).getUniqueId(), friend)) {
 				sender.sendMessage(Lang.parseLegacyText(
-						  Lang.FRIENDS_FRIEND_DELETE_SUCCESS.toString(plugin).formatted(args[0])));
+						Lang.FRIENDS_FRIEND_DELETE_SUCCESS.toString(plugin).formatted(args[0])));
 				return true;
 			} else {
 				Lang.FRIENDS_DATABASE_FAILURE.sendMessage(plugin, sender);

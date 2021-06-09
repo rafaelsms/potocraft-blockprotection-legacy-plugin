@@ -103,11 +103,11 @@ public class DoorListener extends Listener {
 			// Send door sound to anyone nearby
 			for (Player player : clickedBlock.getWorld().getNearbyPlayers(clickedBlock.getLocation(), RADIUS_LOCATION)) {
 				player.playSound(
-						  clickedBlock.getLocation(),
-						  getSoundFromDoor(door),
-						  SoundCategory.PLAYERS,
-						  1.0f,
-						  1.0f
+						clickedBlock.getLocation(),
+						getSoundFromDoor(door),
+						SoundCategory.PLAYERS,
+						1.0f,
+						1.0f
 				);
 			}
 		}

@@ -9,6 +9,8 @@ load: POSTWORLD
 permissions:
   blockprotection.debug:
     description: Allows you to check debug information of the blocks through an item.
+  blockprotection.protection_override:
+    description: Allows you to break any block.
 commands:
   friends:
     description: List people who can break and/or place your blocks and near your blocks.

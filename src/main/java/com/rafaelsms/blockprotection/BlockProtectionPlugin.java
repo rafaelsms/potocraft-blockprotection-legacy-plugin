@@ -2,8 +2,10 @@ package com.rafaelsms.blockprotection;
 
 import com.rafaelsms.blockprotection.blocks.BlocksDatabase;
 import com.rafaelsms.blockprotection.blocks.listeners.*;
-import com.rafaelsms.blockprotection.friends.commands.*;
 import com.rafaelsms.blockprotection.friends.FriendsDatabase;
+import com.rafaelsms.blockprotection.friends.commands.AddCommand;
+import com.rafaelsms.blockprotection.friends.commands.DeleteCommand;
+import com.rafaelsms.blockprotection.friends.commands.ListCommand;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.event.HandlerList;

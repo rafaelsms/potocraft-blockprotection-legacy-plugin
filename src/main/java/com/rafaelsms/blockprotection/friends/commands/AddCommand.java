@@ -32,14 +32,14 @@ public class AddCommand implements CommandExecutor {
 			UUID friend = plugin.getServer().getPlayerUniqueId(args[0]);
 			if (friend == null) {
 				sender.sendMessage(Lang.parseLegacyText(
-						  Lang.FRIENDS_FRIEND_NOT_FOUND.toString(plugin).formatted(args[0])));
+						Lang.FRIENDS_FRIEND_NOT_FOUND.toString(plugin).formatted(args[0])));
 				return true;
 			}
 
 			for (OfflinePlayer currentFriend : plugin.getFriendsDatabase().listFriends(((Player) sender).getUniqueId())) {
 				if (currentFriend.getUniqueId().equals(friend)) {
 					sender.sendMessage(Lang.parseLegacyText(
-							  Lang.FRIENDS_FRIEND_ADD_ALREADY.toString(plugin).formatted(args[0])));
+							Lang.FRIENDS_FRIEND_ADD_ALREADY.toString(plugin).formatted(args[0])));
 					return true;
 				}
 			}
@@ -47,7 +47,7 @@ public class AddCommand implements CommandExecutor {
 			// Add to the database
 			if (plugin.getFriendsDatabase().addFriend(((Player) sender).getUniqueId(), friend)) {
 				sender.sendMessage(Lang.parseLegacyText(
-						  Lang.FRIENDS_FRIEND_ADD_SUCCESS.toString(plugin).formatted(args[0])));
+						Lang.FRIENDS_FRIEND_ADD_SUCCESS.toString(plugin).formatted(args[0])));
 				return true;
 			} else {
 				Lang.FRIENDS_DATABASE_FAILURE.sendMessage(plugin, sender);

@@ -58,7 +58,7 @@ public class ProtectionBlockListener extends Listener {
 				plugin.getLogger().info("World \"%s\" will be protected".formatted(world.getName()));
 			} else {
 				throw new IllegalArgumentException("World \"%s\" was not found and WILL NOT be protected".formatted(
-						  worldName));
+						worldName));
 			}
 		}
 		this.protectedWorlds = Collections.unmodifiableSet(protectedWorlds);
@@ -66,12 +66,12 @@ public class ProtectionBlockListener extends Listener {
 		// Check allowed materials
 		HashSet<Material> materialsAllowedInteraction = new HashSet<>();
 		for (String material : plugin.getConfig()
-				  .getStringList(Config.PROTECTION_MATERIALS_ALLOWED_INTERACTION.toString())) {
+				                       .getStringList(Config.PROTECTION_MATERIALS_ALLOWED_INTERACTION.toString())) {
 			materialsAllowedInteraction.add(Material.valueOf(material));
 		}
 		this.materialsAllowedInteraction = Collections.unmodifiableSet(materialsAllowedInteraction);
 		plugin.getLogger().info("%d materials are allowed to be interactable by anyone".formatted(
-				  this.materialsAllowedInteraction.size()));
+				this.materialsAllowedInteraction.size()));
 
 		// Check protected materials
 		HashSet<Material> protectedMaterials = new HashSet<>();
@@ -80,7 +80,7 @@ public class ProtectionBlockListener extends Listener {
 		}
 		this.protectedMaterials = Collections.unmodifiableSet(protectedMaterials);
 		plugin.getLogger().info("%d materials are going to be protected".formatted(
-				  this.protectedMaterials.size()));
+				this.protectedMaterials.size()));
 	}
 
 	private boolean shouldIgnore(Block block, @Nullable Player player) {
@@ -118,8 +118,8 @@ public class ProtectionBlockListener extends Listener {
 		if (blockData != null) {
 			if (blockData.getOfflinePlayer() != null) {
 				player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_TEXT.toString(plugin).formatted(
-						  blockData.getOfflinePlayer().getName(),
-						  blockData.printDate()
+						blockData.getOfflinePlayer().getName(),
+						blockData.printDate()
 				)));
 			} else {
 				Lang.PROTECTION_DEBUG_NO_BLOCK.sendMessage(plugin, player);
@@ -145,7 +145,7 @@ public class ProtectionBlockListener extends Listener {
 
 		// Check if there are protected blocks nearby
 		ProtectionResult result = plugin.getBlocksDatabase()
-				  .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
+				                          .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
 
 		if (result.isProtected()) {
 			Lang.PROTECTION_NEARBY_BLOCKS.sendActionBar(plugin, event.getPlayer());
@@ -161,9 +161,14 @@ public class ProtectionBlockListener extends Listener {
 			return;
 		}
 
+		// Ignore admin permission to override block break
+		if (event.getPlayer() != null && event.getPlayer().hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+			return;
+		}
+
 		// Check if there are protected blocks nearby
 		ProtectionResult result = plugin.getBlocksDatabase()
-				  .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
+				                          .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
 
 		// If there is a blocking block nearby, cancel
 		if (result.isProtected()) {
@@ -181,7 +186,7 @@ public class ProtectionBlockListener extends Listener {
 
 		// Check if there are protected blocks nearby
 		ProtectionResult result = plugin.getBlocksDatabase()
-				  .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
+				                          .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
 
 		// If there is a blocking block nearby, cancel
 		if (result.isProtected()) {
