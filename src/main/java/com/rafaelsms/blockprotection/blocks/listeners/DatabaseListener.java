@@ -15,14 +15,14 @@ public class DatabaseListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onProtectedPlace(ProtectedPlaceEvent event) {
+	private void onProtectedPlace(ProtectedPlaceEvent event) {
 		if (!plugin.getBlocksDatabase().insertBlock(event.getBlock().getLocation(), event.getUniqueId())) {
 			Lang.PROTECTION_DATABASE_FAILURE.sendActionBar(plugin, event.getPlayer());
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onProtectedBreak(ProtectedBreakEvent event) {
+	private void onProtectedBreak(ProtectedBreakEvent event) {
 		plugin.getBlocksDatabase().deleteBlock(event.getBlock().getLocation());
 	}
 }

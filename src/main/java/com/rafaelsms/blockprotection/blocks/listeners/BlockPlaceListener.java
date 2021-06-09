@@ -30,7 +30,7 @@ public class BlockPlaceListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onPortalCreation(PortalCreateEvent event) {
+	private void onPortalCreation(PortalCreateEvent event) {
 		// Ignore events other than nether generating portal
 		if (event.getReason() != PortalCreateEvent.CreateReason.NETHER_PAIR) {
 			return;
@@ -50,7 +50,7 @@ public class BlockPlaceListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onChangeToAnything(EntityChangeBlockEvent event) {
+	private void onChangeToAnything(EntityChangeBlockEvent event) {
 		// Check if block changed at all
 		if (event.getBlock().getType() == event.getTo()) {
 			return;
@@ -80,7 +80,7 @@ public class BlockPlaceListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onSpreadBlock(BlockSpreadEvent event) {
+	private void onSpreadBlock(BlockSpreadEvent event) {
 		// Check if we need to skip fire altogether
 		if (stopFireSpread && event.getSource().getType() == Material.FIRE) {
 			event.getSource().setType(Material.AIR);
@@ -104,7 +104,7 @@ public class BlockPlaceListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onCanBuildBlock(BlockCanBuildEvent event) {
+	private void onCanBuildBlock(BlockCanBuildEvent event) {
 		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getPlayer(), event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(placeEvent);
 
@@ -115,7 +115,7 @@ public class BlockPlaceListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onPlace(BlockPlaceEvent event) {
+	private void onPlace(BlockPlaceEvent event) {
 		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getPlayer(), event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(placeEvent);
 
@@ -127,19 +127,19 @@ public class BlockPlaceListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onMultiPlace(BlockMultiPlaceEvent event) {
+	private void onMultiPlace(BlockMultiPlaceEvent event) {
 		// Do the same as place
 		onPlace(event);
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onPlaceMonitor(BlockPlaceEvent event) {
+	private void onPlaceMonitor(BlockPlaceEvent event) {
 		PlaceEvent placeEvent = new PlaceEvent(event.getPlayer(), event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(placeEvent);
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onMultiPlaceMonitor(BlockMultiPlaceEvent event) {
+	private void onMultiPlaceMonitor(BlockMultiPlaceEvent event) {
 		// Do the same as place
 		onPlaceMonitor(event);
 	}

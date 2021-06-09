@@ -28,7 +28,7 @@ public class BlockBreakListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onEntityExplodeBlocks(EntityExplodeEvent event) {
+	private void onEntityExplodeBlocks(EntityExplodeEvent event) {
 		Iterator<Block> iterator = event.blockList().iterator();
 		while (iterator.hasNext()) {
 			Block block = iterator.next();
@@ -45,7 +45,7 @@ public class BlockBreakListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onBreakDoor(EntityBreakDoorEvent event) {
+	private void onBreakDoor(EntityBreakDoorEvent event) {
 		AttemptBreakEvent breakEvent = new AttemptBreakEvent(null, event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 
@@ -56,7 +56,7 @@ public class BlockBreakListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onBurn(BlockBurnEvent event) {
+	private void onBurn(BlockBurnEvent event) {
 		AttemptBreakEvent breakEvent = new AttemptBreakEvent(null, event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 
@@ -67,13 +67,13 @@ public class BlockBreakListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onFadeMonitor(BlockFadeEvent event) {
+	private void onFadeMonitor(BlockFadeEvent event) {
 		BreakEvent breakEvent = new BreakEvent(event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onChangeToNothing(EntityChangeBlockEvent event) {
+	private void onChangeToNothing(EntityChangeBlockEvent event) {
 		// Check if block changed at all
 		if (event.getBlock().getType() == event.getTo()) {
 			return;
@@ -104,7 +104,7 @@ public class BlockBreakListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onDamage(BlockDamageEvent event) {
+	private void onDamage(BlockDamageEvent event) {
 		AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getPlayer(), event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 
@@ -115,7 +115,7 @@ public class BlockBreakListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onBreak(BlockBreakEvent event) {
+	private void onBreak(BlockBreakEvent event) {
 		AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getPlayer(), event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 
@@ -126,7 +126,7 @@ public class BlockBreakListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onBreakMonitor(BlockBreakEvent event) {
+	private void onBreakMonitor(BlockBreakEvent event) {
 		BreakEvent breakEvent = new BreakEvent(event.getBlock());
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 	}

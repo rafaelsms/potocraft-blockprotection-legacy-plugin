@@ -66,7 +66,7 @@ public class DoorListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-	public void onInteract(PlayerInteractEvent event) {
+	private void onInteract(PlayerInteractEvent event) {
 		if (doorConditions(event)) {
 			// For both hands, deny using the item in hand
 			event.setUseItemInHand(Event.Result.DENY);
@@ -83,7 +83,7 @@ public class DoorListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onInteractMonitor(PlayerInteractEvent event) {
+	private void onInteractMonitor(PlayerInteractEvent event) {
 		if (doorConditions(event)) {
 
 			// Check if we are not interacting with our main hand (or we will open and close the door at the same time)

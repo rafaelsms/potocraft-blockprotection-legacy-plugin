@@ -18,7 +18,7 @@ public class BlockInteractListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	public void onInteraction(PlayerInteractEvent event) {
+	private void onInteraction(PlayerInteractEvent event) {
 		// Let's ignore when no block is involved
 		Block clickedBlock = event.getClickedBlock();
 		if (event.useInteractedBlock() == Event.Result.DENY
@@ -43,7 +43,7 @@ public class BlockInteractListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onInteractionMonitor(PlayerInteractEvent event) {
+	private void onInteractionMonitor(PlayerInteractEvent event) {
 		// Check if there isn't a clicked block
 		Block clickedBlock = event.getClickedBlock();
 		if (event.useInteractedBlock() == Event.Result.DENY

@@ -16,7 +16,7 @@ public class BlockPistonListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onExtendMonitor(BlockPistonExtendEvent event) {
+	private void onExtendMonitor(BlockPistonExtendEvent event) {
 		for (Block block : event.getBlocks()) {
 			BreakEvent breakEvent = new BreakEvent(block);
 			plugin.getServer().getPluginManager().callEvent(breakEvent);
@@ -24,7 +24,7 @@ public class BlockPistonListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	public void onRetractMonitor(BlockPistonRetractEvent event) {
+	private void onRetractMonitor(BlockPistonRetractEvent event) {
 		for (Block block : event.getBlocks()) {
 			BreakEvent breakEvent = new BreakEvent(block);
 			plugin.getServer().getPluginManager().callEvent(breakEvent);

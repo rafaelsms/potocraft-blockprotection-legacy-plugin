@@ -101,7 +101,7 @@ public class ProtectionBlockListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = false)
-	public void onDebugInteract(AttemptInteractEvent event) {
+	private void onDebugInteract(AttemptInteractEvent event) {
 		Player player = event.getPlayer();
 		if (player == null || !player.hasPermission(Permission.DEBUG.toString())) {
 			return;
@@ -130,7 +130,7 @@ public class ProtectionBlockListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void onAttemptInteract(AttemptInteractEvent event) {
+	private void onAttemptInteract(AttemptInteractEvent event) {
 		// Avoid any check when not in a protected environment
 		// Interactions shouldn't warn the player
 		if (shouldIgnore(event.getBlock(), null)) {
@@ -155,7 +155,7 @@ public class ProtectionBlockListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void onAttemptBreak(AttemptBreakEvent event) {
+	private void onAttemptBreak(AttemptBreakEvent event) {
 		// Avoid any check when not in a protected environment
 		if (shouldIgnore(event.getBlock(), null)) {
 			return;
@@ -178,7 +178,7 @@ public class ProtectionBlockListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void onAttemptPlace(AttemptPlaceEvent event) {
+	private void onAttemptPlace(AttemptPlaceEvent event) {
 		// Avoid any check when not in a protected environment
 		if (shouldIgnore(event.getBlock(), event.getPlayer())) {
 			return;
@@ -196,7 +196,7 @@ public class ProtectionBlockListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void onBreak(BreakEvent event) {
+	private void onBreak(BreakEvent event) {
 		// Avoid any check when not in a protected environment
 		if (shouldIgnore(event.getBlock(), null)) {
 			return;
@@ -208,7 +208,7 @@ public class ProtectionBlockListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true)
-	public void onPlace(PlaceEvent event) {
+	private void onPlace(PlaceEvent event) {
 		// Avoid any check when not in a protected environment
 		Player player = event.getPlayer();
 		Block block = event.getBlock();
