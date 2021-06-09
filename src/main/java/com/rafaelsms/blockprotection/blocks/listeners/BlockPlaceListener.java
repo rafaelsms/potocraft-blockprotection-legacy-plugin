@@ -1,6 +1,7 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
+import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.blocks.events.AttemptPlaceEvent;
 import com.rafaelsms.blockprotection.blocks.events.PlaceEvent;
 import org.bukkit.Material;
@@ -12,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 
@@ -19,8 +21,12 @@ public class BlockPlaceListener implements Listener {
 
 	private final BlockProtectionPlugin plugin;
 
+	private final boolean stopFireSpread;
+
 	public BlockPlaceListener(BlockProtectionPlugin plugin) {
 		this.plugin = plugin;
+		// Get configuration
+		stopFireSpread = plugin.getConfig().getBoolean(Config.PROTECTION_STOP_FIRE_SPREAD.toString());
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -69,6 +75,30 @@ public class BlockPlaceListener implements Listener {
 			// Check if event was cancelled
 			if (placeEvent.isCancelled()) {
 				event.setCancelled(true);
+			}
+		}
+	}
+
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+	public void onSpreadBlock(BlockSpreadEvent event) {
+		// Check if we need to skip fire altogether
+		if (stopFireSpread && event.getSource().getType() == Material.FIRE) {
+			event.getSource().setType(Material.AIR);
+			event.setCancelled(true);
+			return;
+		}
+
+		// Check protection
+		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(null, event.getBlock());
+		plugin.getServer().getPluginManager().callEvent(placeEvent);
+
+		// Check if event was cancelled
+		if (placeEvent.isCancelled()) {
+			event.setCancelled(true);
+
+			// If source is fire and we cancel the event, delete it anyway
+			if (event.getSource().getType() == Material.FIRE) {
+				event.getSource().setType(Material.AIR);
 			}
 		}
 	}

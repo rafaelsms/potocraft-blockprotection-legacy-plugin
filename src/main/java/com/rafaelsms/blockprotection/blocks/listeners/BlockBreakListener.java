@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -63,6 +64,12 @@ public class BlockBreakListener implements Listener {
 		if (breakEvent.isCancelled()) {
 			event.setCancelled(true);
 		}
+	}
+
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+	public void onFadeMonitor(BlockFadeEvent event) {
+		BreakEvent breakEvent = new BreakEvent(event.getBlock());
+		plugin.getServer().getPluginManager().callEvent(breakEvent);
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)

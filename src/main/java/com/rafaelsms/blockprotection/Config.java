@@ -12,6 +12,7 @@ public enum Config {
 	PROTECTION_DAYS_PROTECTED("config.protection.protected_for_days"),
 	PROTECTION_MINIMUM_HEIGHT("config.protection.minimum_height_to_protect"),
 	PROTECTION_PROTECTION_RADIUS("config.protection.protection_radius"),
+	PROTECTION_STOP_FIRE_SPREAD("config.protection.stop_fire_spread"),
 	PROTECTION_PROTECTED_WORLDS("config.protection.protected_worlds"),
 	// Materials
 	PROTECTION_DEBUG_ITEM("config.protection.materials.debug_item"),

@@ -35,6 +35,7 @@ config:
     protected_for_days: 14
     minimum_height_to_protect: 42
     protection_radius: 42
+    stop_fire_spread: true
     protected_worlds:
       - world
     materials:
