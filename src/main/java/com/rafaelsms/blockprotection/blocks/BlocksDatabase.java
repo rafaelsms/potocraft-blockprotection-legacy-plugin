@@ -46,7 +46,7 @@ public class BlocksDatabase extends Database {
 					  `lastModification` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 					  `owner` BINARY(16) NOT NULL,
 					  PRIMARY KEY (`world`, `x`, `y`, `z`),
-					  INDEX `chunkIndex` (`chunkX` ASC, `chunkZ` ASC, `world` ASC) VISIBLE);
+					  INDEX `chunkIndex` (`chunkX` ASC, `chunkZ` ASC, `world` ASC));
 					""";
 			connection.prepareStatement(SQL_CREATE_TABLE).execute();
 		}

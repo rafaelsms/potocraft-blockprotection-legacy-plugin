@@ -30,7 +30,7 @@ public class FriendsDatabase extends Database {
 			  `player` BINARY(16) NOT NULL,
 			  `friend` BINARY(16) NOT NULL,
 			  PRIMARY KEY (`player`, `friend`),
-			  INDEX `friendsIndex` (`friend` ASC) VISIBLE);
+			  INDEX `friendsIndex` (`friend` ASC));
 			""";
 			PreparedStatement statement = connection.prepareStatement(SQL_CREATE_TABLE);
 			statement.execute();
