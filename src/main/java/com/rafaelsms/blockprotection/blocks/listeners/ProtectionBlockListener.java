@@ -137,6 +137,11 @@ public class ProtectionBlockListener extends Listener {
 			return;
 		}
 
+		// Ignore admin permission to override block interaction
+		if (event.getPlayer() != null && event.getPlayer().hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+			return;
+		}
+
 		// Check if material is allowed to interact
 		if (materialsAllowedInteraction.contains(event.getBlock().getType())) {
 			// Ignore event (allow interaction)
