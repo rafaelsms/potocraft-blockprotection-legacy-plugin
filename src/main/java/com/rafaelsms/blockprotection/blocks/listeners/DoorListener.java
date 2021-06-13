@@ -35,6 +35,11 @@ public class DoorListener extends Listener {
 			return false;
 		}
 
+		// Check if player is sneaking
+		if (event.getPlayer().isSneaking()) {
+			return false;
+		}
+
 		// Check if clicked block is null
 		Block clickedBlock = event.getClickedBlock();
 		if (clickedBlock == null) {
