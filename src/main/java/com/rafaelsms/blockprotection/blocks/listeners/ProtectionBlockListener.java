@@ -131,9 +131,11 @@ public class ProtectionBlockListener extends Listener {
 
 	@EventHandler(ignoreCancelled = true)
 	private void onAttemptInteract(AttemptInteractEvent event) {
+		Block block = event.getBlock();
+
 		// Avoid any check when not in a protected environment
 		// Interactions shouldn't warn the player
-		if (shouldIgnore(event.getBlock(), null)) {
+		if (shouldIgnore(block, null)) {
 			return;
 		}
 
@@ -143,14 +145,15 @@ public class ProtectionBlockListener extends Listener {
 		}
 
 		// Check if material is allowed to interact
-		if (materialsAllowedInteraction.contains(event.getBlock().getType())) {
+		if (materialsAllowedInteraction.contains(block.getType())) {
 			// Ignore event (allow interaction)
 			return;
 		}
 
 		// Check if there are protected blocks nearby
-		ProtectionResult result = plugin.getBlocksDatabase()
-				                          .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
+		ProtectionResult result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+				block.getLocation(), event.getUniqueId(), plugin.getBlocksDatabase().getInteractRadius()
+		);
 
 		if (result.isProtected()) {
 			Lang.PROTECTION_NEARBY_BLOCKS.sendActionBar(plugin, event.getPlayer());
@@ -161,8 +164,10 @@ public class ProtectionBlockListener extends Listener {
 
 	@EventHandler(ignoreCancelled = true)
 	private void onAttemptBreak(AttemptBreakEvent event) {
+		Block block = event.getBlock();
+
 		// Avoid any check when not in a protected environment
-		if (shouldIgnore(event.getBlock(), null)) {
+		if (shouldIgnore(block, null)) {
 			return;
 		}
 
@@ -172,8 +177,9 @@ public class ProtectionBlockListener extends Listener {
 		}
 
 		// Check if there are protected blocks nearby
-		ProtectionResult result = plugin.getBlocksDatabase()
-				                          .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
+		ProtectionResult result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+				block.getLocation(), event.getUniqueId(), plugin.getBlocksDatabase().getBreakRadius()
+		);
 
 		// If there is a blocking block nearby, cancel
 		if (result.isProtected()) {
@@ -184,14 +190,16 @@ public class ProtectionBlockListener extends Listener {
 
 	@EventHandler(ignoreCancelled = true)
 	private void onAttemptPlace(AttemptPlaceEvent event) {
+		Block block = event.getBlock();
 		// Avoid any check when not in a protected environment
-		if (shouldIgnore(event.getBlock(), event.getPlayer())) {
+		if (shouldIgnore(block, event.getPlayer())) {
 			return;
 		}
 
 		// Check if there are protected blocks nearby
-		ProtectionResult result = plugin.getBlocksDatabase()
-				                          .isThereBlockingBlocksNearby(event.getBlock().getLocation(), event.getUniqueId());
+		ProtectionResult result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+				block.getLocation(), event.getUniqueId(), plugin.getBlocksDatabase().getPlaceRadius()
+		);
 
 		// If there is a blocking block nearby, cancel
 		if (result.isProtected()) {

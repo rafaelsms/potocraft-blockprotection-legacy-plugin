@@ -72,6 +72,7 @@ public class BlockBreakListener implements Listener {
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 	}
 
+	@SuppressWarnings("DuplicatedCode")
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	private void onChangeToNothing(EntityChangeBlockEvent event) {
 		// Check if block changed at all
@@ -85,8 +86,7 @@ public class BlockBreakListener implements Listener {
 		}
 
 		// Check if entity is a falling block or a primed TNT
-		if (event.getEntityType() == EntityType.FALLING_BLOCK ||
-				    event.getEntityType() == EntityType.PRIMED_TNT) {
+		if (event.getEntityType() == EntityType.FALLING_BLOCK || event.getEntityType() == EntityType.PRIMED_TNT) {
 			// allow these entities
 			return;
 		}

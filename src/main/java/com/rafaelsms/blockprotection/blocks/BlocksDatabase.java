@@ -4,10 +4,12 @@ import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.util.Database;
 import com.rafaelsms.blockprotection.util.ProtectedBlock;
+import com.rafaelsms.blockprotection.util.ProtectionRadius;
 import com.rafaelsms.blockprotection.util.ProtectionResult;
 import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,17 +23,29 @@ import java.util.UUID;
 @SuppressWarnings("FieldCanBeLocal")
 public class BlocksDatabase extends Database {
 
-	private final int protectionRadius;
-	private final int protectionChunkRadius;
+	private final ProtectionRadius placeRadius;
+	private final ProtectionRadius breakRadius;
+	private final ProtectionRadius interactRadius;
+
 	private final int daysProtected;
 
 	public BlocksDatabase(BlockProtectionPlugin plugin, HikariDataSource dataSource) throws SQLException {
 		super(plugin, dataSource);
 
 		// Get configuration
-		protectionRadius = plugin.getConfig().getInt(Config.PROTECTION_PROTECTION_RADIUS.toString());
-		protectionChunkRadius = ((int) Math.ceil(protectionRadius / 16.0)) + 1;
-		daysProtected = plugin.getConfig().getInt(Config.PROTECTION_DAYS_PROTECTED.toString());
+		FileConfiguration config = plugin.getConfig();
+		breakRadius = new ProtectionRadius(config.getInt(Config.PROTECTION_PROTECTION_BREAK_RADIUS.toString()));
+		placeRadius = new ProtectionRadius(config.getInt(Config.PROTECTION_PROTECTION_PLACE_RADIUS.toString()));
+		interactRadius = new ProtectionRadius(config.getInt(Config.PROTECTION_PROTECTION_INTERACT_RADIUS.toString()));
+		daysProtected = config.getInt(Config.PROTECTION_DAYS_PROTECTED.toString());
+
+		// Check limits
+		if (placeRadius.getBlockRadius() < 2 * breakRadius.getBlockRadius()) {
+			plugin.getLogger().warning("Can't set place radius less than 2 times break radius or blocks will collide");
+		}
+		if (interactRadius.getBlockRadius() > breakRadius.getBlockRadius()) {
+			plugin.getLogger().warning("Can't set interact radius less than break radius or people can't break");
+		}
 
 		// Create blocks table
 		try (Connection connection = getConnection()) {
@@ -52,6 +66,51 @@ public class BlocksDatabase extends Database {
 		}
 	}
 
+	private void setLocation(PreparedStatement statement, Location location) throws SQLException {
+		// World id
+		statement.setString(1, location.getWorld().getUID().toString());
+		// Chunk coordinates
+		statement.setInt(2, location.getChunk().getX());
+		statement.setInt(3, location.getChunk().getZ());
+		// Block coordinates
+		statement.setInt(4, location.getBlockX());
+		statement.setInt(5, location.getBlockY());
+		statement.setInt(6, location.getBlockZ());
+	}
+
+	private void setLocation(PreparedStatement statement, Location location, ProtectionRadius radius)
+			throws SQLException {
+		// world's UUID
+		statement.setString(1, location.getWorld().getUID().toString());
+		// chunkX
+		statement.setInt(2, location.getChunk().getX() - radius.getChunkRadius());
+		statement.setInt(3, location.getChunk().getX() + radius.getChunkRadius());
+		// chunkZ
+		statement.setInt(4, location.getChunk().getZ() - radius.getChunkRadius());
+		statement.setInt(5, location.getChunk().getZ() + radius.getChunkRadius());
+		// x
+		statement.setInt(6, location.getBlockX() - radius.getBlockRadius());
+		statement.setInt(7, location.getBlockX() + radius.getBlockRadius());
+		// y
+		statement.setInt(8, location.getBlockY() - radius.getBlockRadius());
+		statement.setInt(9, location.getBlockY() + radius.getBlockRadius());
+		// z
+		statement.setInt(10, location.getBlockZ() - radius.getBlockRadius());
+		statement.setInt(11, location.getBlockZ() + radius.getBlockRadius());
+	}
+
+	public ProtectionRadius getBreakRadius() {
+		return breakRadius;
+	}
+
+	public ProtectionRadius getPlaceRadius() {
+		return placeRadius;
+	}
+
+	public ProtectionRadius getInteractRadius() {
+		return interactRadius;
+	}
+
 	public ProtectedBlock getBlockData(@NotNull Location location) {
 		try (Connection connection = getConnection()) {
 			final String SQL_SELECT_OWNER = """
@@ -68,16 +127,7 @@ public class BlocksDatabase extends Database {
 					    `blocks`.`z` = ?;
 					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_SELECT_OWNER);
-			// world
-			statement.setString(1, location.getWorld().getUID().toString());
-			// chunk
-			statement.setInt(2, location.getChunk().getX());
-			statement.setInt(3, location.getChunk().getZ());
-			// coordinates
-			statement.setInt(4, location.getBlockX());
-			statement.setInt(5, location.getBlockY());
-			statement.setInt(6, location.getBlockZ());
-
+			setLocation(statement, location);
 			ResultSet result = statement.executeQuery();
 
 			if (result.next()) {
@@ -95,7 +145,7 @@ public class BlocksDatabase extends Database {
 		}
 	}
 
-	public ProtectionResult isThereBlockingBlocksNearby(@NotNull Location location) {
+	public ProtectionResult isThereBlockingBlocksNearby(@NotNull Location location, ProtectionRadius radius) {
 		try (Connection connection = getConnection()) {
 			final String SQL_QUERY_BLOCKS_NO_USER = """
 					SELECT
@@ -112,27 +162,7 @@ public class BlocksDatabase extends Database {
 					LIMIT 1;
 					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_NO_USER);
-
-			// Prepare arguments:
-			// - World coordinates
-			// world's UUID
-			statement.setString(1, location.getWorld().getUID().toString());
-			// chunkX
-			statement.setInt(2, location.getChunk().getX() - protectionChunkRadius);
-			statement.setInt(3, location.getChunk().getX() + protectionChunkRadius);
-			// chunkZ
-			statement.setInt(4, location.getChunk().getZ() - protectionChunkRadius);
-			statement.setInt(5, location.getChunk().getZ() + protectionChunkRadius);
-			// x
-			statement.setInt(6, location.getBlockX() - protectionRadius);
-			statement.setInt(7, location.getBlockX() + protectionRadius);
-			// y
-			statement.setInt(8, location.getBlockY() - protectionRadius);
-			statement.setInt(9, location.getBlockY() + protectionRadius);
-			// z
-			statement.setInt(10, location.getBlockZ() - protectionRadius);
-			statement.setInt(11, location.getBlockZ() + protectionRadius);
-			// time interval
+			setLocation(statement, location, radius);
 			statement.setInt(12, daysProtected);
 
 			ResultSet result = statement.executeQuery();
@@ -144,10 +174,11 @@ public class BlocksDatabase extends Database {
 		}
 	}
 
-	public ProtectionResult isThereBlockingBlocksNearby(@NotNull Location location, @Nullable UUID player) {
+	public ProtectionResult isThereBlockingBlocksNearby(@NotNull Location location, @Nullable UUID player,
+	                                                    ProtectionRadius radius) {
 		// Check if player is null
 		if (player == null) {
-			return isThereBlockingBlocksNearby(location);
+			return isThereBlockingBlocksNearby(location, radius);
 		}
 
 		try (Connection connection = getConnection()) {
@@ -174,26 +205,7 @@ public class BlocksDatabase extends Database {
 					LIMIT 1;
 					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_USER);
-
-			// Prepare arguments:
-			// - World coordinates
-			// world's UUID
-			statement.setString(1, location.getWorld().getUID().toString());
-			// chunkX
-			statement.setInt(2, location.getChunk().getX() - protectionChunkRadius);
-			statement.setInt(3, location.getChunk().getX() + protectionChunkRadius);
-			// chunkZ
-			statement.setInt(4, location.getChunk().getZ() - protectionChunkRadius);
-			statement.setInt(5, location.getChunk().getZ() + protectionChunkRadius);
-			// x
-			statement.setInt(6, location.getBlockX() - protectionRadius);
-			statement.setInt(7, location.getBlockX() + protectionRadius);
-			// y
-			statement.setInt(8, location.getBlockY() - protectionRadius);
-			statement.setInt(9, location.getBlockY() + protectionRadius);
-			// z
-			statement.setInt(10, location.getBlockZ() - protectionRadius);
-			statement.setInt(11, location.getBlockZ() + protectionRadius);
+			setLocation(statement, location, radius);
 			// time interval
 			statement.setInt(12, daysProtected);
 			// player
@@ -226,15 +238,7 @@ public class BlocksDatabase extends Database {
 					`owner` = UUID_TO_BIN(?);
 					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_INSERT_BLOCK);
-			// World id
-			statement.setString(1, location.getWorld().getUID().toString());
-			// Chunk coordinates
-			statement.setInt(2, location.getChunk().getX());
-			statement.setInt(3, location.getChunk().getZ());
-			// Block coordinates
-			statement.setInt(4, location.getBlockX());
-			statement.setInt(5, location.getBlockY());
-			statement.setInt(6, location.getBlockZ());
+			setLocation(statement, location);
 			// Owner
 			statement.setString(7, owner.toString());
 			statement.setString(8, owner.toString());
@@ -247,6 +251,7 @@ public class BlocksDatabase extends Database {
 		}
 	}
 
+	@SuppressWarnings("UnusedReturnValue")
 	public boolean deleteBlock(Location location) {
 		try (Connection connection = getConnection()) {
 			final String SQL_DELETE_BLOCK = """
@@ -260,15 +265,7 @@ public class BlocksDatabase extends Database {
 					    `z` = ?;
 					""";
 			PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BLOCK);
-			// World id
-			statement.setString(1, location.getWorld().getUID().toString());
-			// Chunk coordinates
-			statement.setInt(2, location.getChunk().getX());
-			statement.setInt(3, location.getChunk().getZ());
-			// Block coordinates
-			statement.setInt(4, location.getBlockX());
-			statement.setInt(5, location.getBlockY());
-			statement.setInt(6, location.getBlockZ());
+			setLocation(statement, location);
 			statement.execute();
 			return true;
 		} catch (SQLException exception) {

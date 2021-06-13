@@ -49,6 +49,7 @@ public class BlockPlaceListener implements Listener {
 		}
 	}
 
+	@SuppressWarnings("DuplicatedCode")
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	private void onChangeToAnything(EntityChangeBlockEvent event) {
 		// Check if block changed at all
@@ -62,8 +63,7 @@ public class BlockPlaceListener implements Listener {
 		}
 
 		// Check if entity is a falling block or a primed TNT
-		if (event.getEntityType() == EntityType.FALLING_BLOCK ||
-				    event.getEntityType() == EntityType.PRIMED_TNT) {
+		if (event.getEntityType() == EntityType.FALLING_BLOCK || event.getEntityType() == EntityType.PRIMED_TNT) {
 			// allow these entities
 			return;
 		}
