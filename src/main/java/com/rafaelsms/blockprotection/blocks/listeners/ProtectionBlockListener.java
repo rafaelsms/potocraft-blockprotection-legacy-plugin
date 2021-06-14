@@ -159,7 +159,7 @@ public class ProtectionBlockListener extends Listener {
 		// On right click, mimic attempt place event and check nearby blocks
 		if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
 			List<ProtectedBlock> protectedBlocks = plugin.getBlocksDatabase().getDistinctOwnersProtectedBlocks(
-					event.getBlock().getLocation(), plugin.getBlocksDatabase().getInteractRadius());
+					event.getBlock().getLocation(), plugin.getBlocksDatabase().getPlaceRadius());
 
 			if (protectedBlocks.isEmpty()) {
 				Lang.PROTECTION_DEBUG_LIST_EMPTY.sendMessage(plugin, player);
