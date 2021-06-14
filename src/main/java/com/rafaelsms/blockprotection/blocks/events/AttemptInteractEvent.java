@@ -3,6 +3,7 @@ package com.rafaelsms.blockprotection.blocks.events;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -13,15 +14,21 @@ public class AttemptInteractEvent extends CancellableBlockEvent implements UserE
 	private static final HandlerList handlers = new HandlerList();
 
 	private final @Nullable Player player;
+	private final PlayerInteractEvent event;
 
-	public AttemptInteractEvent(@Nullable Player player, @NotNull Block block) {
+	public AttemptInteractEvent(@Nullable Player player, @NotNull Block block, @NotNull PlayerInteractEvent event) {
 		super(block);
 		this.player = player;
+		this.event = event;
 	}
 
 	@Override
 	public @Nullable Player getPlayer() {
 		return player;
+	}
+
+	public PlayerInteractEvent getEvent() {
+		return event;
 	}
 
 	@Override

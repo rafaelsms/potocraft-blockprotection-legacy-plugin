@@ -7,6 +7,7 @@ config:
   lang:
     protection:
       nearby_blocks: "&cProtected block nearby"
+      nearby_blocks_owned_by: "&cProtected block by &4{PLAYER}&c nearby"
       block_under_minimum_height: "&cUnder protected height"
       unprotected_world: "&cUnprotected world"
       unprotected_material_placed: "&cMaterial can't be protected"

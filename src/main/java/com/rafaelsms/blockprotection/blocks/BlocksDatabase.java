@@ -4,8 +4,8 @@ import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.util.Database;
 import com.rafaelsms.blockprotection.util.ProtectedBlock;
+import com.rafaelsms.blockprotection.util.ProtectionQuery;
 import com.rafaelsms.blockprotection.util.ProtectionRadius;
-import com.rafaelsms.blockprotection.util.ProtectionResult;
 import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -145,7 +145,7 @@ public class BlocksDatabase extends Database {
 		}
 	}
 
-	public ProtectionResult isThereBlockingBlocksNearby(@NotNull Location location, ProtectionRadius radius) {
+	public ProtectionQuery isThereBlockingBlocksNearby(@NotNull Location location, ProtectionRadius radius) {
 		try (Connection connection = getConnection()) {
 			final String SQL_QUERY_BLOCKS_NO_USER = """
 					SELECT
@@ -166,16 +166,21 @@ public class BlocksDatabase extends Database {
 			statement.setInt(12, daysProtected);
 
 			ResultSet result = statement.executeQuery();
-			return result.next() ? ProtectionResult.PROTECTED : ProtectionResult.NOT_PROTECTED;
+			// Return owner or not protected
+			if (result.next()) {
+				return new ProtectionQuery(UUID.fromString(result.getString(1)));
+			} else {
+				return new ProtectionQuery(ProtectionQuery.Result.NOT_PROTECTED);
+			}
 		} catch (SQLException exception) {
 			plugin.getLogger().warning("Failed to select nearby blocks: %d".formatted(exception.getErrorCode()));
 			exception.printStackTrace();
-			return ProtectionResult.DATABASE_FAILURE;
+			return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
 		}
 	}
 
-	public ProtectionResult isThereBlockingBlocksNearby(@NotNull Location location, @Nullable UUID player,
-	                                                    ProtectionRadius radius) {
+	public ProtectionQuery isThereBlockingBlocksNearby(@NotNull Location location, @Nullable UUID player,
+	                                                   ProtectionRadius radius) {
 		// Check if player is null
 		if (player == null) {
 			return isThereBlockingBlocksNearby(location, radius);
@@ -213,12 +218,17 @@ public class BlocksDatabase extends Database {
 			statement.setString(14, player.toString());
 
 			ResultSet result = statement.executeQuery();
-			return result.next() ? ProtectionResult.PROTECTED : ProtectionResult.NOT_PROTECTED;
+			// Return owner or not protected
+			if (result.next()) {
+				return new ProtectionQuery(UUID.fromString(result.getString(1)));
+			} else {
+				return new ProtectionQuery(ProtectionQuery.Result.NOT_PROTECTED);
+			}
 		} catch (SQLException exception) {
-			plugin.getLogger().warning("Failed to select nearby blocks with player: %d".formatted(
-					exception.getErrorCode()));
+			plugin.getLogger().warning(
+					"Failed to select nearby blocks with player: %d".formatted(exception.getErrorCode()));
 			exception.printStackTrace();
-			return ProtectionResult.DATABASE_FAILURE;
+			return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
 		}
 	}
 
