@@ -20,6 +20,9 @@ public enum Lang {
 	PROTECTION_DEBUG_DATABASE_FAILURE("config.lang.protection.debug.database_failure"),
 	PROTECTION_DEBUG_NO_BLOCK("config.lang.protection.debug.no_block"),
 	PROTECTION_DEBUG_TEXT("config.lang.protection.debug.debug_text"),
+	PROTECTION_DEBUG_LIST_TITLE("config.lang.protection.debug.debug_list.title"),
+	PROTECTION_DEBUG_LIST_TEXT("config.lang.protection.debug.debug_list.text"),
+	PROTECTION_DEBUG_LIST_EMPTY("config.lang.protection.debug.debug_list.empty"),
 
 	// Friends
 	FRIENDS_CANT_BE_CONSOLE("config.lang.friends.cant_be_console"),

@@ -11,8 +11,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.sql.SQLException;
-
 @SuppressWarnings("ConstantConditions")
 public class BlockProtectionPlugin extends JavaPlugin {
 
@@ -60,10 +58,10 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
 			blocksDatabase = new BlocksDatabase(this, dataSource);
 			friendsDatabase = new FriendsDatabase(this, dataSource);
-		} catch (SQLException exception) {
-			getLogger().severe("Couldn't initialize MySQL database: %d".formatted(exception.getErrorCode()));
+		} catch (Exception exception) {
+			getLogger().severe("Couldn't initialize MySQL database: %s".formatted(exception.getMessage()));
 			exception.printStackTrace();
-			getServer().getPluginManager().disablePlugin(this);
+			getServer().shutdown();
 			return;
 		}
 

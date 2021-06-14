@@ -7,6 +7,7 @@ import com.rafaelsms.blockprotection.Permission;
 import com.rafaelsms.blockprotection.blocks.events.*;
 import com.rafaelsms.blockprotection.util.Listener;
 import com.rafaelsms.blockprotection.util.ProtectedBlock;
+import com.rafaelsms.blockprotection.util.ProtectedBlockOwner;
 import com.rafaelsms.blockprotection.util.ProtectionQuery;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -14,13 +15,11 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class ProtectionBlockListener extends Listener {
 
@@ -137,19 +136,47 @@ public class ProtectionBlockListener extends Listener {
 			return;
 		}
 
-		// Get block data from database
-		ProtectedBlock blockData = plugin.getBlocksDatabase().getBlockData(event.getBlock().getLocation());
-		if (blockData != null) {
-			if (blockData.getOfflinePlayer() != null) {
-				player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_TEXT.toString(plugin).formatted(
-						blockData.getOfflinePlayer().getName(),
-						blockData.printDate()
-				)));
+		Action action = event.getEvent().getAction();
+
+		// On left click, get single block data
+		if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
+			// Get block data from database
+			ProtectedBlockOwner blockData = plugin.getBlocksDatabase().getBlockData(event.getBlock().getLocation());
+			if (blockData != null) {
+				if (blockData.getOfflinePlayer() != null) {
+					player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_TEXT.toString(plugin).formatted(
+							blockData.getOfflinePlayer().getName(),
+							blockData.printDate()
+					)));
+				} else {
+					Lang.PROTECTION_DEBUG_NO_BLOCK.sendMessage(plugin, player);
+				}
 			} else {
-				Lang.PROTECTION_DEBUG_NO_BLOCK.sendMessage(plugin, player);
+				Lang.PROTECTION_DEBUG_DATABASE_FAILURE.sendMessage(plugin, player);
 			}
-		} else {
-			Lang.PROTECTION_DEBUG_DATABASE_FAILURE.sendMessage(plugin, player);
+		}
+
+		// On right click, mimic attempt place event and check nearby blocks
+		if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+			List<ProtectedBlock> protectedBlocks = plugin.getBlocksDatabase().getDistinctOwnersProtectedBlocks(
+					event.getBlock().getLocation(), plugin.getBlocksDatabase().getInteractRadius());
+
+			if (protectedBlocks.isEmpty()) {
+				Lang.PROTECTION_DEBUG_LIST_EMPTY.sendMessage(plugin, player);
+				return;
+			}
+
+			String blockString = ProtectedBlock.toString(
+					event.getBlock().getX(),
+					event.getBlock().getY(),
+					event.getBlock().getZ()
+			);
+			player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_LIST_TITLE.toString(plugin)
+					                                        .formatted(blockString)));
+			for (ProtectedBlock protectedBlock : protectedBlocks) {
+				player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_LIST_TEXT.toString(plugin)
+						                                        .formatted(protectedBlock.toString(plugin))));
+			}
 		}
 
 		// Prevent any accidental change to the block
