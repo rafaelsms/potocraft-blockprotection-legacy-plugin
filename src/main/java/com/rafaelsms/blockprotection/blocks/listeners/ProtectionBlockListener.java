@@ -200,9 +200,30 @@ public class ProtectionBlockListener extends Listener {
 		}
 
 		// Check if material is allowed to interact
-		if (materialsAllowedInteraction.contains(block.getType()) &&
-				    !(event.getBlock().getState() instanceof InventoryHolder)) {
+		boolean isInventoryHolder = event.getBlock().getState() instanceof InventoryHolder;
+		if (materialsAllowedInteraction.contains(block.getType()) && !isInventoryHolder) {
 			// Ignore event (allow interaction)
+			return;
+		}
+
+		// Check if is inventory holder
+		if (isInventoryHolder) {
+			// Get line of sight of player
+			for (Block next : event.getPlayer().getLineOfSight(null, 5)) {
+				// Skip empty or liquid
+				if (next.isEmpty() || next.isLiquid()) {
+					continue;
+				}
+
+				// Check if next block is the inventory holder
+				if (next.getBlockKey() != block.getBlockKey()) {
+					// If it doesn't, cancel the event and return
+					event.setCancelled(true);
+					return;
+				}
+			}
+
+			// If it wasn't cancelled, allow
 			return;
 		}
 
