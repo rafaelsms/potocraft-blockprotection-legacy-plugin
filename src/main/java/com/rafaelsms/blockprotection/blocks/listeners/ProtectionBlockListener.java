@@ -16,6 +16,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
@@ -199,7 +200,8 @@ public class ProtectionBlockListener extends Listener {
 		}
 
 		// Check if material is allowed to interact
-		if (materialsAllowedInteraction.contains(block.getType())) {
+		if (materialsAllowedInteraction.contains(block.getType()) &&
+				    !(event.getBlock().getState() instanceof InventoryHolder)) {
 			// Ignore event (allow interaction)
 			return;
 		}
