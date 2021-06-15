@@ -194,11 +194,6 @@ public class ProtectionBlockListener extends Listener {
 			return;
 		}
 
-		// Ignore admin permission to override block interaction
-		if (event.getPlayer() != null && event.getPlayer().hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
-			return;
-		}
-
 		// Check if material is allowed to interact
 		boolean isInventoryHolder = event.getBlock().getState() instanceof InventoryHolder;
 		if (materialsAllowedInteraction.contains(block.getType()) && !isInventoryHolder) {
@@ -207,7 +202,7 @@ public class ProtectionBlockListener extends Listener {
 		}
 
 		// Check if is inventory holder
-		if (isInventoryHolder) {
+		if (isInventoryHolder && event.getPlayer() != null) {
 			// Get line of sight of player
 			for (Block next : event.getPlayer().getLineOfSight(null, 5)) {
 				// Skip empty or liquid
@@ -224,6 +219,11 @@ public class ProtectionBlockListener extends Listener {
 			}
 
 			// If it wasn't cancelled, allow
+			return;
+		}
+
+		// Ignore admin permission to override block interaction
+		if (event.getPlayer() != null && event.getPlayer().hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
 			return;
 		}
 
