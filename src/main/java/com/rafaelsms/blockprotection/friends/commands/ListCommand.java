@@ -38,6 +38,7 @@ public class ListCommand implements CommandExecutor {
 				return true;
 			}
 
+			boolean notPlayedBefore = false;
 			StringBuilder stringBuilder = new StringBuilder();
 			stringBuilder.append(Lang.FRIENDS_FRIEND_LIST_INIT.toString(plugin));
 
@@ -45,6 +46,12 @@ public class ListCommand implements CommandExecutor {
 			for (OfflinePlayer friend : friends) {
 				// Get friend name
 				if (friend.getName() != null) {
+					// Add warning before the name
+					if (!friend.hasPlayedBefore()) {
+						stringBuilder.append('*');
+						notPlayedBefore = true;
+					}
+
 					stringBuilder.append(Lang.FRIENDS_FRIEND_LIST_ITEM.toString(plugin).formatted(friend.getName()));
 				} else {
 					stringBuilder.append(Lang.FRIENDS_FRIEND_LIST_UNKNOWN.toString(plugin));
@@ -53,6 +60,9 @@ public class ListCommand implements CommandExecutor {
 
 			// Send built message
 			sender.sendMessage(Lang.parseLegacyText(stringBuilder.toString()));
+			if (notPlayedBefore) {
+				Lang.FRIENDS_FRIEND_LIST_NOT_PLAYED_BEFORE.sendMessage(plugin, sender);
+			}
 			return true;
 		} else {
 			Lang.FRIENDS_CANT_BE_CONSOLE.sendMessage(plugin, sender);

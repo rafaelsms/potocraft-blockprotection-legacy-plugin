@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class BlocksDatabase extends Database {
@@ -26,6 +27,7 @@ public class BlocksDatabase extends Database {
 	private final ProtectionRadius placeRadius;
 	private final ProtectionRadius breakRadius;
 	private final ProtectionRadius interactRadius;
+	private final ProtectionRadius updateRadius;
 
 	private final int daysProtected;
 
@@ -37,6 +39,7 @@ public class BlocksDatabase extends Database {
 		breakRadius = new ProtectionRadius(config.getInt(Config.PROTECTION_PROTECTION_BREAK_RADIUS.toString()));
 		placeRadius = new ProtectionRadius(config.getInt(Config.PROTECTION_PROTECTION_PLACE_RADIUS.toString()));
 		interactRadius = new ProtectionRadius(config.getInt(Config.PROTECTION_PROTECTION_INTERACT_RADIUS.toString()));
+		updateRadius = new ProtectionRadius(config.getInt(Config.PROTECTION_PROTECTION_UPDATE_RADIUS.toString()));
 		daysProtected = config.getInt(Config.PROTECTION_DAYS_PROTECTED.toString());
 
 		// Check limits
@@ -111,7 +114,11 @@ public class BlocksDatabase extends Database {
 		return interactRadius;
 	}
 
-	public ProtectedBlockOwner getBlockData(@NotNull Location location) {
+	public ProtectionRadius getUpdateRadius() {
+		return updateRadius;
+	}
+
+	public ProtectedBlockDate getBlockData(@NotNull Location location) {
 		try (Connection connection = getConnection()) {
 			final String SQL_SELECT_OWNER = """
 					SELECT
@@ -133,9 +140,9 @@ public class BlocksDatabase extends Database {
 			if (result.next()) {
 				OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(UUID.fromString(result.getString(1)));
 				LocalDateTime dateTime = result.getTimestamp(2).toLocalDateTime();
-				return new ProtectedBlockOwner(offlinePlayer, dateTime);
+				return new ProtectedBlockDate(offlinePlayer, dateTime);
 			} else {
-				return new ProtectedBlockOwner(null, null);
+				return new ProtectedBlockDate(null, null);
 			}
 
 		} catch (SQLException exception) {
@@ -322,7 +329,7 @@ public class BlocksDatabase extends Database {
 		}
 	}
 
-	public boolean insertBlock(Location location, UUID owner) {
+	public boolean insertBlock(Location location, UUID owner, ProtectionRadius updateRadius) {
 		try (Connection connection = getConnection()) {
 			final String SQL_INSERT_BLOCK = """
 					INSERT INTO `blockprotection`.`blocks`
@@ -343,11 +350,56 @@ public class BlocksDatabase extends Database {
 			statement.setString(7, owner.toString());
 			statement.setString(8, owner.toString());
 			statement.execute();
+
+			// Check if we should update the time of protection of nearby blocks
+			if (updateRadius != null && updateRadius.getBlockRadius() > 0) {
+				// Asynchronously update near blocks to new date
+				CompletableFuture.runAsync(() -> updateNearbyBlocksTime(location, owner, updateRadius));
+			}
+
 			return true;
 		} catch (SQLException exception) {
 			plugin.getLogger().severe("Failed to insert block on database: %d".formatted(exception.getErrorCode()));
 			exception.printStackTrace();
 			return false;
+		}
+	}
+
+	private void updateNearbyBlocksTime(Location location, UUID owner, ProtectionRadius radius) {
+		try (Connection connection = getConnection()) {
+			final String SQL_UPDATE_TIME = """
+					UPDATE `blockprotection`.`blocks`
+					SET
+					    `blocks`.`lastModification` = NOW()
+					WHERE
+					    `blocks`.`world` = UUID_TO_BIN(?) AND
+					    `blocks`.`chunkX` BETWEEN ? AND ? AND
+					    `blocks`.`chunkZ` BETWEEN ? AND ? AND
+					    `blocks`.`x` BETWEEN ? AND ? AND
+					    `blocks`.`y` BETWEEN ? AND ? AND
+					    `blocks`.`z` BETWEEN ? AND ? AND
+					    `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY) AND (
+					        `blocks`.`owner` = UUID_TO_BIN(?) OR
+					        UUID_TO_BIN(?) IN (
+					            SELECT
+					                `friends`.`friend`
+					            FROM `blockprotection`.`friends`
+					            WHERE
+					                `friends`.`player` = `blocks`.`owner`
+					        )
+					    );
+					""";
+			PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME);
+			setLocation(statement, location, radius);
+			// Set time and owner
+			statement.setInt(12, daysProtected);
+			statement.setString(13, owner.toString());
+			statement.setString(14, owner.toString());
+			// Execute
+			statement.execute();
+		} catch (SQLException exception) {
+			plugin.getLogger().warning("Failed to update blocks: %d".formatted(exception.getErrorCode()));
+			exception.printStackTrace();
 		}
 	}
 

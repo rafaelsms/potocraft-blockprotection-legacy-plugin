@@ -5,12 +5,12 @@ import org.bukkit.OfflinePlayer;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class ProtectedBlockOwner {
+public class ProtectedBlockDate {
 
 	private final OfflinePlayer offlinePlayer;
 	private final LocalDateTime dateTime;
 
-	public ProtectedBlockOwner(OfflinePlayer offlinePlayer, LocalDateTime dateTime) {
+	public ProtectedBlockDate(OfflinePlayer offlinePlayer, LocalDateTime dateTime) {
 		this.offlinePlayer = offlinePlayer;
 		this.dateTime = dateTime;
 	}

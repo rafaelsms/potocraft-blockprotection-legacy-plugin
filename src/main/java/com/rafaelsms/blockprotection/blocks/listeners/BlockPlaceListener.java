@@ -37,7 +37,7 @@ public class BlockPlaceListener implements Listener {
 		}
 
 		for (BlockState block : event.getBlocks()) {
-			AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(null, block.getBlock());
+			AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(block.getBlock(), null);
 			plugin.getServer().getPluginManager().callEvent(placeEvent);
 
 			// Check if event was cancelled
@@ -57,25 +57,32 @@ public class BlockPlaceListener implements Listener {
 			return;
 		}
 
+		// Ignore when block is not solid and is not going to be
+		if (!event.getBlock().isSolid() && !event.getTo().isSolid()) {
+			return;
+		}
+
 		// Check if it is a farm
 		if (event.getBlock().getType() == Material.FARMLAND) {
 			return;
 		}
 
 		// Check if entity is a falling block or a primed TNT
-		if (event.getEntityType() == EntityType.FALLING_BLOCK || event.getEntityType() == EntityType.PRIMED_TNT) {
+		if (event.getEntityType() == EntityType.FALLING_BLOCK ||
+				    event.getEntityType() == EntityType.PRIMED_TNT ||
+				    event.getEntityType() == EntityType.VILLAGER ||
+				    event.getEntityType() == EntityType.BEE ||
+				    event.getEntityType() == EntityType.TURTLE) {
 			// allow these entities
 			return;
 		}
 
-		if (!event.getTo().isEmpty()) {
-			AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(null, event.getBlock());
-			plugin.getServer().getPluginManager().callEvent(placeEvent);
+		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), null);
+		plugin.getServer().getPluginManager().callEvent(placeEvent);
 
-			// Check if event was cancelled
-			if (placeEvent.isCancelled()) {
-				event.setCancelled(true);
-			}
+		// Check if event was cancelled
+		if (placeEvent.isCancelled()) {
+			event.setCancelled(true);
 		}
 	}
 
@@ -85,27 +92,12 @@ public class BlockPlaceListener implements Listener {
 		if (stopFireSpread && event.getSource().getType() == Material.FIRE) {
 			event.getSource().setType(Material.AIR);
 			event.setCancelled(true);
-			return;
-		}
-
-		// Check protection
-		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(null, event.getBlock());
-		plugin.getServer().getPluginManager().callEvent(placeEvent);
-
-		// Check if event was cancelled
-		if (placeEvent.isCancelled()) {
-			event.setCancelled(true);
-
-			// If source is fire and we cancel the event, delete it anyway
-			if (event.getSource().getType() == Material.FIRE) {
-				event.getSource().setType(Material.AIR);
-			}
 		}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	private void onCanBuildBlock(BlockCanBuildEvent event) {
-		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getPlayer(), event.getBlock());
+		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
 		plugin.getServer().getPluginManager().callEvent(placeEvent);
 
 		// Check if event was cancelled
@@ -116,7 +108,7 @@ public class BlockPlaceListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	private void onPlace(BlockPlaceEvent event) {
-		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getPlayer(), event.getBlock());
+		AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
 		plugin.getServer().getPluginManager().callEvent(placeEvent);
 
 		// Check if event was cancelled
@@ -134,7 +126,7 @@ public class BlockPlaceListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	private void onPlaceMonitor(BlockPlaceEvent event) {
-		PlaceEvent placeEvent = new PlaceEvent(event.getPlayer(), event.getBlock());
+		PlaceEvent placeEvent = new PlaceEvent(event.getBlock(), event.getPlayer());
 		plugin.getServer().getPluginManager().callEvent(placeEvent);
 	}
 

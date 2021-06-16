@@ -31,7 +31,7 @@ public class BlockInteractListener extends Listener {
 			return;
 		}
 
-		AttemptInteractEvent interactEvent = new AttemptInteractEvent(event.getPlayer(), clickedBlock, event);
+		AttemptInteractEvent interactEvent = new AttemptInteractEvent(clickedBlock, event.getPlayer());
 		plugin.getServer().getPluginManager().callEvent(interactEvent);
 
 		// Check if event was cancelled
@@ -54,7 +54,7 @@ public class BlockInteractListener extends Listener {
 		}
 
 		// Invoke interaction
-		InteractEvent interactEvent = new InteractEvent(event.getPlayer(), clickedBlock);
+		InteractEvent interactEvent = new InteractEvent(clickedBlock, event.getPlayer());
 		plugin.getServer().getPluginManager().callEvent(interactEvent);
 	}
 }

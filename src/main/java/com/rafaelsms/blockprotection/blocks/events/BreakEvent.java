@@ -2,6 +2,7 @@ package com.rafaelsms.blockprotection.blocks.events;
 
 import org.bukkit.block.Block;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.block.BlockEvent;
 import org.jetbrains.annotations.NotNull;
 
 public class BreakEvent extends BlockEvent {

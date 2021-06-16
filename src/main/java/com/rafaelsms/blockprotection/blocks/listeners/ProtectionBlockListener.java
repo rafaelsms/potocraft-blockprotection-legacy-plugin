@@ -7,7 +7,7 @@ import com.rafaelsms.blockprotection.Permission;
 import com.rafaelsms.blockprotection.blocks.events.*;
 import com.rafaelsms.blockprotection.util.Listener;
 import com.rafaelsms.blockprotection.util.ProtectedBlock;
-import com.rafaelsms.blockprotection.util.ProtectedBlockOwner;
+import com.rafaelsms.blockprotection.util.ProtectedBlockDate;
 import com.rafaelsms.blockprotection.util.ProtectionQuery;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -16,6 +16,8 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -124,25 +126,32 @@ public class ProtectionBlockListener extends Listener {
 	}
 
 	@EventHandler(ignoreCancelled = false)
-	private void onDebugInteract(AttemptInteractEvent event) {
-		// Check main item in hand
-		ItemStack mainHand = event.getEvent().getItem();
+	private void onDebugInteract(PlayerInteractEvent event) {
+		Block block = event.getClickedBlock();
+		Player player = event.getPlayer();
+
+		// Filter null blocks
+		if (block == null) {
+			return;
+		}
+
+		// Check item in main hand
+		ItemStack mainHand = event.getItem();
 		if (mainHand == null || mainHand.getType() != debugItem) {
 			return;
 		}
 
-		// Check if there is a player
-		Player player = event.getPlayer();
-		if (player == null || !player.hasPermission(Permission.DEBUG.toString())) {
+		// Check if player has permission
+		if (!player.hasPermission(Permission.DEBUG.toString())) {
 			return;
 		}
 
-		Action action = event.getEvent().getAction();
+		Action action = event.getAction();
 
 		// On left click, get single block data
 		if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
 			// Get block data from database
-			ProtectedBlockOwner blockData = plugin.getBlocksDatabase().getBlockData(event.getBlock().getLocation());
+			ProtectedBlockDate blockData = plugin.getBlocksDatabase().getBlockData(block.getLocation());
 			if (blockData != null) {
 				if (blockData.getOfflinePlayer() != null) {
 					player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_TEXT.toString(plugin).formatted(
@@ -160,18 +169,14 @@ public class ProtectionBlockListener extends Listener {
 		// On right click, mimic attempt place event and check nearby blocks
 		if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
 			List<ProtectedBlock> protectedBlocks = plugin.getBlocksDatabase().getDistinctOwnersProtectedBlocks(
-					event.getBlock().getLocation(), plugin.getBlocksDatabase().getPlaceRadius());
+					block.getLocation(), plugin.getBlocksDatabase().getPlaceRadius());
 
 			if (protectedBlocks.isEmpty()) {
 				Lang.PROTECTION_DEBUG_LIST_EMPTY.sendMessage(plugin, player);
 				return;
 			}
 
-			String blockString = ProtectedBlock.toString(
-					event.getBlock().getX(),
-					event.getBlock().getY(),
-					event.getBlock().getZ()
-			);
+			String blockString = ProtectedBlock.toString(block.getX(), block.getY(), block.getZ());
 			player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_LIST_TITLE.toString(plugin)
 					                                        .formatted(blockString)));
 			for (ProtectedBlock protectedBlock : protectedBlocks) {
@@ -187,6 +192,7 @@ public class ProtectionBlockListener extends Listener {
 	@EventHandler(ignoreCancelled = true)
 	private void onAttemptInteract(AttemptInteractEvent event) {
 		Block block = event.getBlock();
+		Player player = event.getPlayer();
 
 		// Avoid any check when not in a protected environment
 		// Interactions shouldn't warn the player
@@ -195,16 +201,27 @@ public class ProtectionBlockListener extends Listener {
 		}
 
 		// Check if material is allowed to interact
-		boolean isInventoryHolder = event.getBlock().getState() instanceof InventoryHolder;
-		if (materialsAllowedInteraction.contains(block.getType()) && !isInventoryHolder) {
+		boolean isInventoryHolder = block.getState() instanceof InventoryHolder;
+		boolean interactionAllowed = materialsAllowedInteraction.contains(block.getType());
+		if (interactionAllowed && !isInventoryHolder) {
 			// Ignore event (allow interaction)
 			return;
 		}
 
+		// Ignore blocks that are not interactable
+		if (!interactionAllowed && !block.getType().isInteractable()) {
+			return;
+		}
+
 		// Check if is inventory holder
-		if (isInventoryHolder && event.getPlayer() != null) {
+		if (isInventoryHolder) {
+			// Allow if entities are interacting with inventory
+			if (player == null) {
+				return;
+			}
+
 			// Get line of sight of player
-			for (Block next : event.getPlayer().getLineOfSight(null, 5)) {
+			for (Block next : player.getLineOfSight(null, 5)) {
 				// Skip empty or liquid
 				if (next.isEmpty() || next.isLiquid()) {
 					continue;
@@ -223,14 +240,35 @@ public class ProtectionBlockListener extends Listener {
 		}
 
 		// Ignore admin permission to override block interaction
-		if (event.getPlayer() != null && event.getPlayer().hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+		if (player != null && player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
 			return;
 		}
 
 		// Check if there are protected blocks nearby
 		ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-				block.getLocation(), event.getUniqueId(), plugin.getBlocksDatabase().getInteractRadius()
+				block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getInteractRadius()
 		);
+
+		// Check if it is protected
+		if (result.isProtected()) {
+			// Cancel the event
+			event.setCancelled(true);
+			// Send player message
+			sendPlayerMessage(player, result);
+		}
+		// If there isn't, allow interaction
+	}
+
+	@EventHandler(ignoreCancelled = true)
+	private void onChorusFruitTeleport(PlayerTeleportEvent event) {
+		// Filter chorus fruit
+		if (event.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) {
+			return;
+		}
+
+		// Check if new location is near protected area
+		ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+				event.getTo(), event.getPlayer().getUniqueId(), plugin.getBlocksDatabase().getPlaceRadius());
 
 		// Check if it is protected
 		if (result.isProtected()) {
@@ -239,7 +277,6 @@ public class ProtectionBlockListener extends Listener {
 			// Send player message
 			sendPlayerMessage(event.getPlayer(), result);
 		}
-		// If there isn't, allow interaction
 	}
 
 	@EventHandler(ignoreCancelled = true)
@@ -258,7 +295,7 @@ public class ProtectionBlockListener extends Listener {
 
 		// Check if there are protected blocks nearby
 		ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-				block.getLocation(), event.getUniqueId(), plugin.getBlocksDatabase().getBreakRadius());
+				block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getBreakRadius());
 
 		// Check if it is protected
 		if (result.isProtected()) {
@@ -280,7 +317,7 @@ public class ProtectionBlockListener extends Listener {
 
 		// Check if there are protected blocks nearby
 		ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-				block.getLocation(), event.getUniqueId(), plugin.getBlocksDatabase().getPlaceRadius()
+				block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getPlaceRadius()
 		);
 
 		// Check if it is protected
@@ -320,14 +357,22 @@ public class ProtectionBlockListener extends Listener {
 		}
 
 		// Check place material
-		if (protectedMaterials.contains(block.getType())) {
-			// Call protected event
-			ProtectedPlaceEvent protectedPlaceEvent = new ProtectedPlaceEvent(player, block);
-			plugin.getServer().getPluginManager().callEvent(protectedPlaceEvent);
-		} else {
+		if (!protectedMaterials.contains(block.getType())) {
 			// Show to player that this block can't be protected
-			Lang.PROTECTION_BLOCK_WONT_BE_PROTECTED.sendActionBar(plugin, player);
+			Lang.PROTECTION_BLOCK_NOT_PROTECTED_MATERIAL.sendActionBar(plugin, player);
+			return;
 		}
+
+		// Check if player is on protection mode
+		if (!plugin.getPlayerProtectionListener().isProtecting(player)) {
+			// Show to player that needs to be sneaking
+			Lang.PROTECTION_BLOCK_NOT_PROTECTED_SNEAKING.sendActionBar(plugin, player);
+			return;
+		}
+
+		// Call protected event
+		ProtectedPlaceEvent protectedPlaceEvent = new ProtectedPlaceEvent(block, player);
+		plugin.getServer().getPluginManager().callEvent(protectedPlaceEvent);
 	}
 
 }

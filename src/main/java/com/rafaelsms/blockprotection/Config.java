@@ -14,6 +14,7 @@ public enum Config {
 	PROTECTION_PROTECTION_BREAK_RADIUS("config.protection.protection_break_radius"),
 	PROTECTION_PROTECTION_PLACE_RADIUS("config.protection.protection_place_radius"),
 	PROTECTION_PROTECTION_INTERACT_RADIUS("config.protection.protection_interact_radius"),
+	PROTECTION_PROTECTION_UPDATE_RADIUS("config.protection.protection_update_radius"),
 	PROTECTION_STOP_FIRE_SPREAD("config.protection.stop_fire_spread"),
 	PROTECTION_PROTECTED_WORLDS("config.protection.protected_worlds"),
 	// Materials

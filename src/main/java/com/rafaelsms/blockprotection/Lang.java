@@ -14,7 +14,11 @@ public enum Lang {
 	// Block place
 	PROTECTION_UNDER_MINIMUM_HEIGHT("config.lang.protection.block_under_minimum_height"),
 	PROTECTION_UNPROTECTED_WORLD("config.lang.protection.unprotected_world"),
-	PROTECTION_BLOCK_WONT_BE_PROTECTED("config.lang.protection.unprotected_material_placed"),
+	PROTECTION_BLOCK_NOT_PROTECTED_MATERIAL("config.lang.protection.unprotected_material_placed"),
+	PROTECTION_BLOCK_NOT_PROTECTED_SNEAKING("config.lang.protection.unprotected_not_sneaking"),
+	PROTECTION_BLOCK_PROTECTING("config.lang.protection.protecting"),
+	PROTECTION_BLOCK_PROTECTING_TITLE("config.lang.protection.progress_protecting_title"),
+	PROTECTION_BLOCK_CHARGING_TITLE("config.lang.protection.progress_charging_title"),
 	PROTECTION_DATABASE_FAILURE("config.lang.protection.database_insert_failure"),
 	// Debug
 	PROTECTION_DEBUG_DATABASE_FAILURE("config.lang.protection.debug.database_failure"),
@@ -33,6 +37,7 @@ public enum Lang {
 	FRIENDS_FRIEND_LIST_INIT("config.lang.friends.friend_list.list_init"),
 	FRIENDS_FRIEND_LIST_ITEM("config.lang.friends.friend_list.list_item"),
 	FRIENDS_FRIEND_LIST_UNKNOWN("config.lang.friends.friend_list.unknown_name"),
+	FRIENDS_FRIEND_LIST_NOT_PLAYED_BEFORE("config.lang.friends.friend_list.has_not_played"),
 
 	FRIENDS_FRIEND_ADD_COMMAND_HELP("config.lang.friends.friend_add.command_help"),
 	FRIENDS_FRIEND_ADD_SUCCESS("config.lang.friends.friend_add.friend_added"),
@@ -49,12 +54,16 @@ public enum Lang {
 		this.configurationPath = configurationPath;
 	}
 
+	public TextComponent toComponent(BlockProtectionPlugin plugin) {
+		return parseLegacyText(plugin.getConfig().getString(configurationPath));
+	}
+
 	public void sendActionBar(BlockProtectionPlugin plugin, @Nullable Player player) {
 		// Check if there is a player to send a bar to
 		if (player == null) {
 			return;
 		}
-		player.sendActionBar(parseLegacyText(plugin.getConfig().getString(configurationPath)));
+		player.sendActionBar(toComponent(plugin));
 	}
 
 	public void sendMessage(BlockProtectionPlugin plugin, CommandSender sender) {
@@ -62,7 +71,7 @@ public enum Lang {
 		if (sender == null) {
 			return;
 		}
-		sender.sendMessage(parseLegacyText(plugin.getConfig().getString(configurationPath)));
+		sender.sendMessage(toComponent(plugin));
 	}
 
 	public String toString(BlockProtectionPlugin plugin) {

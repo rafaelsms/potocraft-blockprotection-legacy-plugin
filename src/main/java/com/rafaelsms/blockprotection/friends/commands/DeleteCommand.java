@@ -29,6 +29,7 @@ public class DeleteCommand implements CommandExecutor {
 
 			// Get player id by name
 			UUID friend = plugin.getServer().getPlayerUniqueId(args[0]);
+			// Check if UUID is null
 			if (friend == null) {
 				sender.sendMessage(Lang.parseLegacyText(
 						Lang.FRIENDS_FRIEND_NOT_FOUND.toString(plugin).formatted(args[0])));

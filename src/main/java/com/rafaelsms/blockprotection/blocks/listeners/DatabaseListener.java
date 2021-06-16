@@ -16,7 +16,12 @@ public class DatabaseListener extends Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	private void onProtectedPlace(ProtectedPlaceEvent event) {
-		if (!plugin.getBlocksDatabase().insertBlock(event.getBlock().getLocation(), event.getUniqueId())) {
+		if (plugin.getBlocksDatabase().insertBlock(
+				event.getBlock().getLocation(),
+				event.getPlayer().getUniqueId(),
+				plugin.getBlocksDatabase().getUpdateRadius())) {
+			Lang.PROTECTION_BLOCK_PROTECTING.sendActionBar(plugin, event.getPlayer());
+		} else {
 			Lang.PROTECTION_DATABASE_FAILURE.sendActionBar(plugin, event.getPlayer());
 		}
 	}

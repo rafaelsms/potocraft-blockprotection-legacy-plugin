@@ -25,6 +25,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
 	private BlockPistonListener blockPistonListener;
 	private BlockPlaceListener blockPlaceListener;
 	private DatabaseListener databaseListener;
+	private PlayerProtectionListener playerProtectionListener;
 	private ProtectionBlockListener protectionBlockListener;
 	private DoorListener doorListener;
 
@@ -71,6 +72,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
 		blockPistonListener = new BlockPistonListener(this);
 		blockPlaceListener = new BlockPlaceListener(this);
 		databaseListener = new DatabaseListener(this);
+		playerProtectionListener = new PlayerProtectionListener(this);
 		protectionBlockListener = new ProtectionBlockListener(this);
 		doorListener = new DoorListener(this);
 
@@ -80,6 +82,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
 		getServer().getPluginManager().registerEvents(blockPistonListener, this);
 		getServer().getPluginManager().registerEvents(blockPlaceListener, this);
 		getServer().getPluginManager().registerEvents(databaseListener, this);
+		getServer().getPluginManager().registerEvents(playerProtectionListener, this);
 		getServer().getPluginManager().registerEvents(protectionBlockListener, this);
 		getServer().getPluginManager().registerEvents(doorListener, this);
 
@@ -113,6 +116,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
 		blockPlaceListener = null;
 		databaseListener = null;
 		protectionBlockListener = null;
+		playerProtectionListener = null;
 		doorListener = null;
 
 		// Disable database managers
@@ -128,5 +132,9 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
 	public FriendsDatabase getFriendsDatabase() {
 		return friendsDatabase;
+	}
+
+	public PlayerProtectionListener getPlayerProtectionListener() {
+		return playerProtectionListener;
 	}
 }

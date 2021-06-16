@@ -31,6 +31,5 @@ public class ProtectionQuery {
 		PROTECTED,
 		NOT_PROTECTED,
 		DATABASE_FAILURE
-
 	}
 }

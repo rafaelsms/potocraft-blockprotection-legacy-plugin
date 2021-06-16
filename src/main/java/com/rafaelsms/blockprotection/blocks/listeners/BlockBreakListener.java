@@ -33,7 +33,7 @@ public class BlockBreakListener implements Listener {
 		while (iterator.hasNext()) {
 			Block block = iterator.next();
 
-			AttemptBreakEvent breakEvent = new AttemptBreakEvent(null, block);
+			AttemptBreakEvent breakEvent = new AttemptBreakEvent(block, null);
 			plugin.getServer().getPluginManager().callEvent(breakEvent);
 
 			// Check if event was cancelled
@@ -46,7 +46,7 @@ public class BlockBreakListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	private void onBreakDoor(EntityBreakDoorEvent event) {
-		AttemptBreakEvent breakEvent = new AttemptBreakEvent(null, event.getBlock());
+		AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 
 		// Check if event was cancelled
@@ -57,7 +57,7 @@ public class BlockBreakListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	private void onBurn(BlockBurnEvent event) {
-		AttemptBreakEvent breakEvent = new AttemptBreakEvent(null, event.getBlock());
+		AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 
 		// Check if event was cancelled
@@ -80,20 +80,29 @@ public class BlockBreakListener implements Listener {
 			return;
 		}
 
+		// Ignore when block is not solid and is not going to be
+		if (!event.getBlock().isSolid() && !event.getTo().isSolid()) {
+			return;
+		}
+
 		// Check if it is a farm
 		if (event.getBlock().getType() == Material.FARMLAND) {
 			return;
 		}
 
 		// Check if entity is a falling block or a primed TNT
-		if (event.getEntityType() == EntityType.FALLING_BLOCK || event.getEntityType() == EntityType.PRIMED_TNT) {
+		if (event.getEntityType() == EntityType.FALLING_BLOCK ||
+				    event.getEntityType() == EntityType.PRIMED_TNT ||
+				    event.getEntityType() == EntityType.VILLAGER ||
+				    event.getEntityType() == EntityType.BEE ||
+				    event.getEntityType() == EntityType.TURTLE) {
 			// allow these entities
 			return;
 		}
 
 		// Check on block place or break
 		if (event.getTo().isEmpty()) {
-			AttemptBreakEvent breakEvent = new AttemptBreakEvent(null, event.getBlock());
+			AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
 			plugin.getServer().getPluginManager().callEvent(breakEvent);
 
 			// Check if event was cancelled
@@ -105,7 +114,7 @@ public class BlockBreakListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	private void onDamage(BlockDamageEvent event) {
-		AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getPlayer(), event.getBlock());
+		AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 
 		// Check if it was cancelled
@@ -116,7 +125,7 @@ public class BlockBreakListener implements Listener {
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
 	private void onBreak(BlockBreakEvent event) {
-		AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getPlayer(), event.getBlock());
+		AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
 		plugin.getServer().getPluginManager().callEvent(breakEvent);
 
 		// Check if it was cancelled
