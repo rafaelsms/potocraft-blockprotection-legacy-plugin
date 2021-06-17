@@ -37,6 +37,12 @@ public class AddCommand implements CommandExecutor {
 				return true;
 			}
 
+			// Check if player is you
+			if (friend.equals(((Player) sender).getUniqueId())) {
+				Lang.FRIENDS_FRIEND_ADD_CANNOT_BE_YOU.sendMessage(plugin, sender);
+				return true;
+			}
+
 			for (OfflinePlayer currentFriend : plugin.getFriendsDatabase().listFriends(((Player) sender).getUniqueId())) {
 				if (currentFriend.getUniqueId().equals(friend)) {
 					sender.sendMessage(Lang.parseLegacyText(

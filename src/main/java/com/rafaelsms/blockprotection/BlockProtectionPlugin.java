@@ -35,12 +35,11 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
 	@Override
 	public void onEnable() {
-		// Copy default configuration
-		saveDefaultConfig();
-
-		// Initialize database
 		try {
+			// Copy default configuration
+			saveDefaultConfig();
 
+			// Initialize database
 			HikariConfig config = new HikariConfig();
 			// Get from configuration
 			config.setJdbcUrl(getConfig().getString(Config.DATABASE_URL.toString()));
@@ -59,43 +58,44 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
 			blocksDatabase = new BlocksDatabase(this, dataSource);
 			friendsDatabase = new FriendsDatabase(this, dataSource);
+
+			// Initialize listeners
+			blockBreakListener = new BlockBreakListener(this);
+			blockInteractListener = new BlockInteractListener(this);
+			blockPistonListener = new BlockPistonListener(this);
+			blockPlaceListener = new BlockPlaceListener(this);
+			databaseListener = new DatabaseListener(this);
+			playerProtectionListener = new PlayerProtectionListener(this);
+			protectionBlockListener = new ProtectionBlockListener(this);
+			doorListener = new DoorListener(this);
+
+			// Register listeners
+			getServer().getPluginManager().registerEvents(blockBreakListener, this);
+			getServer().getPluginManager().registerEvents(blockInteractListener, this);
+			getServer().getPluginManager().registerEvents(blockPistonListener, this);
+			getServer().getPluginManager().registerEvents(blockPlaceListener, this);
+			getServer().getPluginManager().registerEvents(databaseListener, this);
+			getServer().getPluginManager().registerEvents(playerProtectionListener, this);
+			getServer().getPluginManager().registerEvents(protectionBlockListener, this);
+			getServer().getPluginManager().registerEvents(doorListener, this);
+
+			// Initialize commands
+			listCommand = new ListCommand(this);
+			addCommand = new AddCommand(this);
+			deleteCommand = new DeleteCommand(this);
+
+			// Set executors for commands
+			getServer().getPluginCommand("friends").setExecutor(listCommand);
+			getServer().getPluginCommand("addfriend").setExecutor(addCommand);
+			getServer().getPluginCommand("delfriend").setExecutor(deleteCommand);
+
 		} catch (Exception exception) {
-			getLogger().severe("Couldn't initialize MySQL database: %s".formatted(exception.getMessage()));
+			getLogger().severe("Couldn't initialize Block protection: %s".formatted(exception.getMessage()));
 			exception.printStackTrace();
+			// Force shutdown
 			getServer().shutdown();
 			return;
 		}
-
-		// Initialize listeners
-		blockBreakListener = new BlockBreakListener(this);
-		blockInteractListener = new BlockInteractListener(this);
-		blockPistonListener = new BlockPistonListener(this);
-		blockPlaceListener = new BlockPlaceListener(this);
-		databaseListener = new DatabaseListener(this);
-		playerProtectionListener = new PlayerProtectionListener(this);
-		protectionBlockListener = new ProtectionBlockListener(this);
-		doorListener = new DoorListener(this);
-
-		// Register listeners
-		getServer().getPluginManager().registerEvents(blockBreakListener, this);
-		getServer().getPluginManager().registerEvents(blockInteractListener, this);
-		getServer().getPluginManager().registerEvents(blockPistonListener, this);
-		getServer().getPluginManager().registerEvents(blockPlaceListener, this);
-		getServer().getPluginManager().registerEvents(databaseListener, this);
-		getServer().getPluginManager().registerEvents(playerProtectionListener, this);
-		getServer().getPluginManager().registerEvents(protectionBlockListener, this);
-		getServer().getPluginManager().registerEvents(doorListener, this);
-
-		// Initialize commands
-		listCommand = new ListCommand(this);
-		addCommand = new AddCommand(this);
-		deleteCommand = new DeleteCommand(this);
-
-		// Set executors for commands
-		getServer().getPluginCommand("friends").setExecutor(listCommand);
-		getServer().getPluginCommand("addfriend").setExecutor(addCommand);
-		getServer().getPluginCommand("delfriend").setExecutor(deleteCommand);
-
 		getLogger().info("BlockProtection enabled!");
 	}
 

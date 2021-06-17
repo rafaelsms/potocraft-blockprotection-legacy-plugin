@@ -38,6 +38,7 @@ config:
         command_help: "&6To add a friend, type &a/addfriend <name of friend>&6"
         friend_added: "&a%s &6was added as a friend!"
         already_friends: "&a%s &6is already your friend!"
+        friend_can_not_be_you: "&cFriend can not be you"
       friend_delete:
         command_help: "&6To delete a friend, type &a/delfriend <name of friend>&6"
         friend_deleted: "&4%s &cremoved from your friend list!"
@@ -484,3 +485,4 @@ config:
         - STONE_BRICK_STAIRS
         - STONE_STAIRS
         - WARPED_STAIRS
+        - GRASS_PATH

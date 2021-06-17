@@ -70,7 +70,12 @@ public class ProtectionBlockListener extends Listener {
 		HashSet<Material> materialsAllowedInteraction = new HashSet<>();
 		for (String material : plugin.getConfig()
 				                       .getStringList(Config.PROTECTION_MATERIALS_ALLOWED_INTERACTION.toString())) {
-			materialsAllowedInteraction.add(Material.valueOf(material));
+			try {
+				materialsAllowedInteraction.add(Material.valueOf(material));
+			} catch (Exception exception) {
+				plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
+				exception.printStackTrace();
+			}
 		}
 		this.materialsAllowedInteraction = Collections.unmodifiableSet(materialsAllowedInteraction);
 		plugin.getLogger().info("%d materials are allowed to be interactable by anyone".formatted(
@@ -79,7 +84,12 @@ public class ProtectionBlockListener extends Listener {
 		// Check protected materials
 		HashSet<Material> protectedMaterials = new HashSet<>();
 		for (String material : plugin.getConfig().getStringList(Config.PROTECTION_MATERIALS_PROTECTED.toString())) {
-			protectedMaterials.add(Material.valueOf(material));
+			try {
+				protectedMaterials.add(Material.valueOf(material));
+			} catch (Exception exception) {
+				plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
+				exception.printStackTrace();
+			}
 		}
 		this.protectedMaterials = Collections.unmodifiableSet(protectedMaterials);
 		plugin.getLogger().info("%d materials are going to be protected".formatted(this.protectedMaterials.size()));

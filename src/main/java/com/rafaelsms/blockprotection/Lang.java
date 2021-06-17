@@ -42,6 +42,7 @@ public enum Lang {
 	FRIENDS_FRIEND_ADD_COMMAND_HELP("config.lang.friends.friend_add.command_help"),
 	FRIENDS_FRIEND_ADD_SUCCESS("config.lang.friends.friend_add.friend_added"),
 	FRIENDS_FRIEND_ADD_ALREADY("config.lang.friends.friend_add.already_friends"),
+	FRIENDS_FRIEND_ADD_CANNOT_BE_YOU("config.lang.friends.friend_add.friend_can_not_be_you"),
 
 	FRIENDS_FRIEND_DELETE_COMMAND_HELP("config.lang.friends.friend_delete.command_help"),
 	FRIENDS_FRIEND_DELETE_SUCCESS("config.lang.friends.friend_delete.friend_deleted"),

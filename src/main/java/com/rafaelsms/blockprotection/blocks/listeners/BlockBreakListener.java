@@ -9,10 +9,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockBurnEvent;
-import org.bukkit.event.block.BlockDamageEvent;
-import org.bukkit.event.block.BlockFadeEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
@@ -40,6 +37,20 @@ public class BlockBreakListener implements Listener {
 			if (breakEvent.isCancelled()) {
 				// Remove the block and continue searching
 				iterator.remove();
+			}
+		}
+	}
+
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+	private void onSpreadBlock(BlockSpreadEvent event) {
+		// Check just when a block disappears
+		if (!event.getBlock().isEmpty() && event.getNewState().getType().isEmpty()) {
+			AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
+			plugin.getServer().getPluginManager().callEvent(breakEvent);
+
+			// Check if event was cancelled
+			if (breakEvent.isCancelled()) {
+				event.setCancelled(true);
 			}
 		}
 	}
