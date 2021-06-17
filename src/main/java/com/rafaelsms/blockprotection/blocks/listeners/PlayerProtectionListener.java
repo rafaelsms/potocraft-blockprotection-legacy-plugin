@@ -49,6 +49,22 @@ public class PlayerProtectionListener implements Listener {
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+	private void onChangeWorld(PlayerChangedWorldEvent event) {
+		ProtectingPlayerStatus playerStatus = protecting.remove(event.getPlayer().getUniqueId());
+		if (playerStatus != null) {
+			playerStatus.destroy();
+		}
+	}
+
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+	private void onPlayerTeleport(PlayerTeleportEvent event) {
+		ProtectingPlayerStatus playerStatus = protecting.remove(event.getPlayer().getUniqueId());
+		if (playerStatus != null) {
+			playerStatus.destroy();
+		}
+	}
+
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
 	private void onPlayerSneak(PlayerToggleSneakEvent event) {
 		getOrCreate(event.getPlayer()).sneak(event.isSneaking());
 	}
@@ -63,11 +79,6 @@ public class PlayerProtectionListener implements Listener {
 		if (event.isSprinting()) {
 			getOrCreate(event.getPlayer()).forceCancel();
 		}
-	}
-
-	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	private void onPlayerTeleport(PlayerTeleportEvent event) {
-		getOrCreate(event.getPlayer()).forceCancel();
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
