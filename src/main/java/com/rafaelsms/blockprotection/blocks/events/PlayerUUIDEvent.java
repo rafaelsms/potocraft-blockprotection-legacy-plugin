@@ -6,6 +6,6 @@ import java.util.UUID;
 
 public interface PlayerUUIDEvent {
 
-	@Nullable UUID getPlayerUUID();
+    @Nullable UUID getPlayerUUID();
 
 }

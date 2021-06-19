@@ -7,19 +7,19 @@ import org.jetbrains.annotations.NotNull;
 
 public class ProtectedBreakEvent extends BlockEvent {
 
-	private static final HandlerList handlers = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
-	public ProtectedBreakEvent(@NotNull Block block) {
-		super(block);
-	}
+    public ProtectedBreakEvent(@NotNull Block block) {
+        super(block);
+    }
 
-	@Override
-	public @NotNull HandlerList getHandlers() {
-		return handlers;
-	}
+    @Override
+    public @NotNull HandlerList getHandlers() {
+        return handlers;
+    }
 
-	@SuppressWarnings("unused")
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
+    @SuppressWarnings("unused")
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
 }

@@ -8,15 +8,19 @@ import java.sql.SQLException;
 
 public abstract class Database {
 
-	private final HikariDataSource dataSource;
-	protected final BlockProtectionPlugin plugin;
+    private static HikariDataSource dataSource;
 
-	public Database(BlockProtectionPlugin plugin, HikariDataSource dataSource) {
-		this.plugin = plugin;
-		this.dataSource = dataSource;
-	}
+    protected final BlockProtectionPlugin plugin;
 
-	public Connection getConnection() throws SQLException {
-		return dataSource.getConnection();
-	}
+    public Database(BlockProtectionPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    protected Connection getConnection() throws SQLException {
+        return dataSource.getConnection();
+    }
+
+    public static void setDataSource(HikariDataSource dataSource) {
+        Database.dataSource = dataSource;
+    }
 }

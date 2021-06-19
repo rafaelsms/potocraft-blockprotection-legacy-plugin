@@ -11,23 +11,23 @@ import org.bukkit.event.block.BlockPistonRetractEvent;
 
 public class BlockPistonListener extends Listener {
 
-	public BlockPistonListener(BlockProtectionPlugin plugin) {
-		super(plugin);
-	}
+    public BlockPistonListener(BlockProtectionPlugin plugin) {
+        super(plugin);
+    }
 
-	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	private void onExtendMonitor(BlockPistonExtendEvent event) {
-		for (Block block : event.getBlocks()) {
-			BreakEvent breakEvent = new BreakEvent(block);
-			plugin.getServer().getPluginManager().callEvent(breakEvent);
-		}
-	}
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    private void onExtendMonitor(BlockPistonExtendEvent event) {
+        for (Block block : event.getBlocks()) {
+            BreakEvent breakEvent = new BreakEvent(block);
+            plugin.getServer().getPluginManager().callEvent(breakEvent);
+        }
+    }
 
-	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	private void onRetractMonitor(BlockPistonRetractEvent event) {
-		for (Block block : event.getBlocks()) {
-			BreakEvent breakEvent = new BreakEvent(block);
-			plugin.getServer().getPluginManager().callEvent(breakEvent);
-		}
-	}
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    private void onRetractMonitor(BlockPistonRetractEvent event) {
+        for (Block block : event.getBlocks()) {
+            BreakEvent breakEvent = new BreakEvent(block);
+            plugin.getServer().getPluginManager().callEvent(breakEvent);
+        }
+    }
 }

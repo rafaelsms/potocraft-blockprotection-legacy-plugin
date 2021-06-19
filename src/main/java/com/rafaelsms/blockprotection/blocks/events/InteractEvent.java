@@ -11,31 +11,31 @@ import java.util.UUID;
 
 public class InteractEvent extends BlockEvent implements PlayerUUIDEvent {
 
-	private static final HandlerList handlers = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
-	private final @Nullable Player player;
+    private final @Nullable Player player;
 
-	public InteractEvent(@NotNull Block block, @Nullable Player player) {
-		super(block);
-		this.player = player;
-	}
+    public InteractEvent(@NotNull Block block, @Nullable Player player) {
+        super(block);
+        this.player = player;
+    }
 
-	public @Nullable Player getPlayer() {
-		return player;
-	}
+    public @Nullable Player getPlayer() {
+        return player;
+    }
 
-	@Override
-	public @Nullable UUID getPlayerUUID() {
-		return player != null ? player.getUniqueId() : null;
-	}
+    @Override
+    public @Nullable UUID getPlayerUUID() {
+        return player != null ? player.getUniqueId() : null;
+    }
 
-	@Override
-	public @NotNull HandlerList getHandlers() {
-		return handlers;
-	}
+    @Override
+    public @NotNull HandlerList getHandlers() {
+        return handlers;
+    }
 
-	@SuppressWarnings("unused")
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
+    @SuppressWarnings("unused")
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
 }

@@ -7,19 +7,35 @@ import java.time.format.DateTimeFormatter;
 
 public class ProtectedBlockDate {
 
-	private final OfflinePlayer offlinePlayer;
-	private final LocalDateTime dateTime;
+    private final OfflinePlayer offlinePlayer;
+    private final LocalDateTime dateTime;
+    private final boolean temporaryBlock;
 
-	public ProtectedBlockDate(OfflinePlayer offlinePlayer, LocalDateTime dateTime) {
-		this.offlinePlayer = offlinePlayer;
-		this.dateTime = dateTime;
-	}
+    public ProtectedBlockDate(OfflinePlayer offlinePlayer, LocalDateTime dateTime, boolean temporaryBlock) {
+        this.offlinePlayer = offlinePlayer;
+        this.dateTime = dateTime;
+        this.temporaryBlock = temporaryBlock;
+    }
 
-	public OfflinePlayer getOfflinePlayer() {
-		return offlinePlayer;
-	}
+    public ProtectedBlockDate() {
+        this.offlinePlayer = null;
+        this.dateTime = null;
+        this.temporaryBlock = true;
+    }
 
-	public String printDate() {
-		return dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss"));
-	}
+    public boolean isNull() {
+        return offlinePlayer == null || dateTime == null;
+    }
+
+    public OfflinePlayer getOfflinePlayer() {
+        return offlinePlayer;
+    }
+
+    public String printDate() {
+        return dateTime != null ? dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")) : "null";
+    }
+
+    public boolean isTemporaryBlock() {
+        return temporaryBlock;
+    }
 }

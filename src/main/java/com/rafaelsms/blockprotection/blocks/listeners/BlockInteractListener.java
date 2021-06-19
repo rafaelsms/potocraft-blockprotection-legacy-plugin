@@ -13,48 +13,48 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 public class BlockInteractListener extends Listener {
 
-	public BlockInteractListener(BlockProtectionPlugin plugin) {
-		super(plugin);
-	}
+    public BlockInteractListener(BlockProtectionPlugin plugin) {
+        super(plugin);
+    }
 
-	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-	private void onInteraction(PlayerInteractEvent event) {
-		// Let's ignore when no block is involved
-		Block clickedBlock = event.getClickedBlock();
-		if (event.useInteractedBlock() == Event.Result.DENY || clickedBlock == null) {
-			return;
-		}
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    private void onInteraction(PlayerInteractEvent event) {
+        // Let's ignore when no block is involved
+        Block clickedBlock = event.getClickedBlock();
+        if (event.useInteractedBlock() == Event.Result.DENY || clickedBlock == null) {
+            return;
+        }
 
-		// Check if interaction happened with air
-		if (event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
-			event.setUseInteractedBlock(Event.Result.DENY);
-			return;
-		}
+        // Check if interaction happened with air
+        if (event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+            event.setUseInteractedBlock(Event.Result.DENY);
+            return;
+        }
 
-		AttemptInteractEvent interactEvent = new AttemptInteractEvent(clickedBlock, event.getPlayer());
-		plugin.getServer().getPluginManager().callEvent(interactEvent);
+        AttemptInteractEvent interactEvent = new AttemptInteractEvent(clickedBlock, event.getPlayer());
+        plugin.getServer().getPluginManager().callEvent(interactEvent);
 
-		// Check if event was cancelled
-		if (interactEvent.isCancelled()) {
-			event.setCancelled(true);
-		}
-	}
+        // Check if event was cancelled
+        if (interactEvent.isCancelled()) {
+            event.setCancelled(true);
+        }
+    }
 
-	@EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-	private void onInteractionMonitor(PlayerInteractEvent event) {
-		// Check if there isn't a clicked block
-		Block clickedBlock = event.getClickedBlock();
-		if (event.useInteractedBlock() == Event.Result.DENY || clickedBlock == null) {
-			return;
-		}
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    private void onInteractionMonitor(PlayerInteractEvent event) {
+        // Check if there isn't a clicked block
+        Block clickedBlock = event.getClickedBlock();
+        if (event.useInteractedBlock() == Event.Result.DENY || clickedBlock == null) {
+            return;
+        }
 
-		// Check if interaction happened with air
-		if (event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
-			return;
-		}
+        // Check if interaction happened with air
+        if (event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+            return;
+        }
 
-		// Invoke interaction
-		InteractEvent interactEvent = new InteractEvent(clickedBlock, event.getPlayer());
-		plugin.getServer().getPluginManager().callEvent(interactEvent);
-	}
+        // Invoke interaction
+        InteractEvent interactEvent = new InteractEvent(clickedBlock, event.getPlayer());
+        plugin.getServer().getPluginManager().callEvent(interactEvent);
+    }
 }

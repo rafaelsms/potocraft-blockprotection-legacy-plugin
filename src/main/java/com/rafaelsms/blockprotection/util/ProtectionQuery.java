@@ -6,30 +6,34 @@ import java.util.UUID;
 
 public class ProtectionQuery {
 
-	private final Result result;
+    private final Result result;
 
-	private UUID owner = null;
+    private UUID owner = null;
 
-	public ProtectionQuery(Result result) {
-		this.result = result;
-	}
+    public ProtectionQuery(Result result) {
+        this.result = result;
+    }
 
-	public ProtectionQuery(UUID owner) {
-		this.result = Result.PROTECTED;
-		this.owner = owner;
-	}
+    public ProtectionQuery(UUID owner) {
+        this.result = Result.PROTECTED;
+        this.owner = owner;
+    }
 
-	public boolean isProtected() {
-		return result == Result.PROTECTED;
-	}
+    public Result getResult() {
+            return result;
+    }
 
-	public @Nullable UUID getOwner() {
-		return owner;
-	}
+    public boolean isProtected() {
+        return result == Result.PROTECTED;
+    }
 
-	public enum Result {
-		PROTECTED,
-		NOT_PROTECTED,
-		DATABASE_FAILURE
-	}
+    public @Nullable UUID getOwner() {
+        return owner;
+    }
+
+    public enum Result {
+        PROTECTED,
+        NOT_PROTECTED,
+        DATABASE_FAILURE
+    }
 }

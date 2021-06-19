@@ -12,50 +12,50 @@ import java.util.UUID;
 
 public class AttemptBreakEvent extends BlockEvent implements Cancellable, PlayerUUIDEvent {
 
-	private static final HandlerList handlers = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
 
-	private final @Nullable Player player;
+    private final @Nullable Player player;
 
-	private boolean cancelled = false;
+    private boolean cancelled = false;
 
-	/**
-	 * Event that represents a block break event.
-	 * (This is a shortcut for every block break or change caused by players or entities).
-	 *
-	 * @param block  block being broken
-	 * @param player user that attempted to break the block
-	 */
-	public AttemptBreakEvent(@NotNull Block block, @Nullable Player player) {
-		super(block);
-		this.player = player;
-	}
+    /**
+     * Event that represents a block break event.
+     * (This is a shortcut for every block break or change caused by players or entities).
+     *
+     * @param block  block being broken
+     * @param player user that attempted to break the block
+     */
+    public AttemptBreakEvent(@NotNull Block block, @Nullable Player player) {
+        super(block);
+        this.player = player;
+    }
 
-	public @Nullable Player getPlayer() {
-		return player;
-	}
+    public @Nullable Player getPlayer() {
+        return player;
+    }
 
-	@Override
-	public @Nullable UUID getPlayerUUID() {
-		return player != null ? player.getUniqueId() : null;
-	}
+    @Override
+    public @Nullable UUID getPlayerUUID() {
+        return player != null ? player.getUniqueId() : null;
+    }
 
-	@Override
-	public boolean isCancelled() {
-		return cancelled;
-	}
+    @Override
+    public boolean isCancelled() {
+        return cancelled;
+    }
 
-	@Override
-	public void setCancelled(boolean cancel) {
-		this.cancelled = cancel;
-	}
+    @Override
+    public void setCancelled(boolean cancel) {
+        this.cancelled = cancel;
+    }
 
-	@Override
-	public @NotNull HandlerList getHandlers() {
-		return handlers;
-	}
+    @Override
+    public @NotNull HandlerList getHandlers() {
+        return handlers;
+    }
 
-	@SuppressWarnings("unused")
-	public static HandlerList getHandlerList() {
-		return handlers;
-	}
+    @SuppressWarnings("unused")
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
 }

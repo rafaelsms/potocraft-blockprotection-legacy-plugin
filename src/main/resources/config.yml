@@ -3,7 +3,7 @@ config:
     url: jdbc:mysql://localhost/database
     user: user
     password: password
-    pool_size: 10
+    pool_size: 20
   lang:
     protection:
       nearby_blocks: "&cProtected block nearby"
@@ -13,12 +13,11 @@ config:
       unprotected_not_sneaking: "&cYou need to be sneaking to protect it"
       unprotected_material_placed: "&cMaterial can't be protected"
       protecting: "&aBlock is protected"
-      progress_protecting_title: "&aProtecting placed blocks"
-      progress_charging_title: "&cKeep sneaking to protect blocks"
+      not_protecing: "&cNot enough blocks to protect"
       database_insert_failure: "&4Database failure on protection"
       debug:
         no_block: "&dDebug: &cthere is no block"
-        debug_text: "&dDebug: &a%1$s &f%2$s"
+        debug_text: "&dDebug: &a%1$s &f%2$s temporary=%3$b"
         database_failure: "&dDebug: &4database error"
         debug_list:
           title: "&dDebug: &6Protected blocks nearby &3%s&6:"
@@ -49,8 +48,8 @@ config:
     protection_place_radius: 10
     protection_interact_radius: 4
     protection_update_radius: 10
-    protection_duration_tick: 300
-    charging_duration_tick: 130
+    protection_search_radius: 2
+    protection_block_count: 7
     stop_fire_spread: true
     protected_worlds:
       - world
@@ -485,4 +484,4 @@ config:
         - STONE_BRICK_STAIRS
         - STONE_STAIRS
         - WARPED_STAIRS
-        - GRASS_PATH
+        - DIRT_PATH

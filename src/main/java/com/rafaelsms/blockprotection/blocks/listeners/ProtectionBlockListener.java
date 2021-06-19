@@ -9,6 +9,9 @@ import com.rafaelsms.blockprotection.util.Listener;
 import com.rafaelsms.blockprotection.util.ProtectedBlock;
 import com.rafaelsms.blockprotection.util.ProtectedBlockDate;
 import com.rafaelsms.blockprotection.util.ProtectionQuery;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -26,363 +29,361 @@ import java.util.*;
 
 public class ProtectionBlockListener extends Listener {
 
-	// Configuration
-	private final Set<UUID> protectedWorlds;
-	private final Set<Material> materialsAllowedInteraction;
-	private final Set<Material> protectedMaterials;
-	private final int minimumProtectedHeight;
-	private final Material debugItem;
+    // Configuration
+    private final Set<UUID> protectedWorlds;
+    private final Set<Material> materialsAllowedInteraction;
+    private final Set<Material> protectedMaterials;
+    private final int minimumProtectedHeight;
+    private final Material debugItem;
 
-	/*
-	 * This listener will get all of our Minecraft events and make into two
-	 * (Attempt[Break/Place] which is cancellable and [Break/Place], which
-	 * is not).
-	 *
-	 * We need to get all of those events and check if we need to deny the
-	 * event (on attempt to break/place), check if we can make a protected
-	 * block or a temporary one (on break/place).
-	 */
+    /*
+     * This listener will get all of our Minecraft events and make into two
+     * (Attempt[Break/Place] which is cancellable and [Break/Place], which
+     * is not).
+     *
+     * We need to get all of those events and check if we need to deny the
+     * event (on attempt to break/place), check if we can make a protected
+     * block or a temporary one (on break/place).
+     */
 
-	public ProtectionBlockListener(BlockProtectionPlugin plugin) {
-		super(plugin);
+    public ProtectionBlockListener(BlockProtectionPlugin plugin) {
+        super(plugin);
 
-		// Get configuration
-		minimumProtectedHeight = plugin.getConfig().getInt(Config.PROTECTION_MINIMUM_HEIGHT.toString());
-		debugItem = Material.valueOf(plugin.getConfig().getString(Config.PROTECTION_DEBUG_ITEM.toString()));
+        // Get configuration
+        minimumProtectedHeight = Config.PROTECTION_MINIMUM_HEIGHT.getInt();
+        debugItem = Material.valueOf(Config.PROTECTION_DEBUG_ITEM.getString());
 
-		// Check which worlds exists
-		HashSet<UUID> protectedWorlds = new HashSet<>();
-		for (String worldName : plugin.getConfig().getStringList(Config.PROTECTION_PROTECTED_WORLDS.toString())) {
-			World world = plugin.getServer().getWorld(worldName);
+        // Check which worlds exists
+        HashSet<UUID> protectedWorlds = new HashSet<>();
+        for (String worldName : Config.PROTECTION_PROTECTED_WORLDS.getStringList()) {
+            World world = plugin.getServer().getWorld(worldName);
 
-			// Check if world exists
-			if (world != null) {
-				protectedWorlds.add(world.getUID());
-				plugin.getLogger().info("World \"%s\" will be protected".formatted(world.getName()));
-			} else {
-				throw new IllegalArgumentException("World \"%s\" was not found and WILL NOT be protected".formatted(
-						worldName));
-			}
-		}
-		this.protectedWorlds = Collections.unmodifiableSet(protectedWorlds);
+            // Check if world exists
+            if (world != null) {
+                protectedWorlds.add(world.getUID());
+                plugin.getLogger().info("World \"%s\" will be protected".formatted(world.getName()));
+            } else {
+                throw new IllegalArgumentException("World \"%s\" was not found and WILL NOT be protected".formatted(
+                        worldName));
+            }
+        }
+        this.protectedWorlds = Collections.unmodifiableSet(protectedWorlds);
 
-		// Check allowed materials
-		HashSet<Material> materialsAllowedInteraction = new HashSet<>();
-		for (String material : plugin.getConfig()
-				                       .getStringList(Config.PROTECTION_MATERIALS_ALLOWED_INTERACTION.toString())) {
-			try {
-				materialsAllowedInteraction.add(Material.valueOf(material));
-			} catch (Exception exception) {
-				plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
-				exception.printStackTrace();
-			}
-		}
-		this.materialsAllowedInteraction = Collections.unmodifiableSet(materialsAllowedInteraction);
-		plugin.getLogger().info("%d materials are allowed to be interactable by anyone".formatted(
-				this.materialsAllowedInteraction.size()));
+        // Check allowed materials
+        HashSet<Material> materialsAllowedInteraction = new HashSet<>();
+        for (String material : Config.PROTECTION_MATERIALS_ALLOWED_INTERACTION.getStringList()) {
+            try {
+                materialsAllowedInteraction.add(Material.valueOf(material));
+            } catch (Exception exception) {
+                plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
+                exception.printStackTrace();
+            }
+        }
+        this.materialsAllowedInteraction = Collections.unmodifiableSet(materialsAllowedInteraction);
+        plugin.getLogger().info("%d materials are allowed to be interactable by anyone".formatted(
+                this.materialsAllowedInteraction.size()));
 
-		// Check protected materials
-		HashSet<Material> protectedMaterials = new HashSet<>();
-		for (String material : plugin.getConfig().getStringList(Config.PROTECTION_MATERIALS_PROTECTED.toString())) {
-			try {
-				protectedMaterials.add(Material.valueOf(material));
-			} catch (Exception exception) {
-				plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
-				exception.printStackTrace();
-			}
-		}
-		this.protectedMaterials = Collections.unmodifiableSet(protectedMaterials);
-		plugin.getLogger().info("%d materials are going to be protected".formatted(this.protectedMaterials.size()));
-	}
+        // Check protected materials
+        HashSet<Material> protectedMaterials = new HashSet<>();
+        for (String material : Config.PROTECTION_MATERIALS_PROTECTED.getStringList()) {
+            try {
+                protectedMaterials.add(Material.valueOf(material));
+            } catch (Exception exception) {
+                plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
+                exception.printStackTrace();
+            }
+        }
+        this.protectedMaterials = Collections.unmodifiableSet(protectedMaterials);
+        plugin.getLogger().info("%d materials are going to be protected".formatted(this.protectedMaterials.size()));
+    }
 
-	private boolean shouldIgnore(Block block, @Nullable Player player) {
-		// Check if is protected world first
-		// (otherwise we will get a "under protection height" warning at a unprotected world)
-		if (!protectedWorlds.contains(block.getWorld().getUID())) {
-			Lang.PROTECTION_UNPROTECTED_WORLD.sendActionBar(plugin, player);
-			return true;
-		}
+    private boolean shouldIgnore(Block block, @Nullable Player player) {
+        // Check if is protected world first
+        // (otherwise we will get a "under protection height" warning at a unprotected world)
+        if (!protectedWorlds.contains(block.getWorld().getUID())) {
+            Lang.PROTECTION_UNPROTECTED_WORLD.sendActionBar(player);
+            return true;
+        }
 
-		// Check height
-		if (block.getY() < minimumProtectedHeight) {
-			Lang.PROTECTION_UNDER_MINIMUM_HEIGHT.sendActionBar(plugin, player);
-			return true;
-		}
+        // Check height
+        if (block.getY() < minimumProtectedHeight) {
+            Lang.PROTECTION_UNDER_MINIMUM_HEIGHT.sendActionBar(player);
+            return true;
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	private void sendPlayerMessage(Player player, ProtectionQuery result) {
-		// Check if there is a player
-		if (player == null) {
-			return;
-		}
+    private void sendPlayerMessage(Player player, ProtectionQuery result) {
+        // Check if there is a player
+        if (player == null) {
+            return;
+        }
 
-		// Check if there is a owner
-		if (result.getOwner() != null) {
-			OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(result.getOwner());
+        // Check if there is a owner
+        if (result.getOwner() != null) {
+            OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(result.getOwner());
 
-			// Check if owner has a name on the server
-			if (offlinePlayer.getName() != null) {
-				String blockProtectedMessage = Lang.PROTECTION_NEARBY_BLOCKS_OWNED.toString(plugin)
-						                               .replaceAll("\\{PLAYER}", offlinePlayer.getName());
-				player.sendActionBar(Lang.parseLegacyText(blockProtectedMessage));
-				return;
-			}
-		}
+            // Check if owner has a name on the server
+            if (offlinePlayer.getName() != null) {
+                BaseComponent[] blockProtectedMessage = TextComponent.fromLegacyText(
+                        Lang.PROTECTION_NEARBY_BLOCKS_OWNED.toColoredString()
+                                .replaceAll("\\{PLAYER}", offlinePlayer.getName()));
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR, blockProtectedMessage);
+                return;
+            }
+        }
 
-		// Otherwise, send default message
-		Lang.PROTECTION_NEARBY_BLOCKS.sendActionBar(plugin, player);
-	}
+        // Otherwise, send default message
+        Lang.PROTECTION_NEARBY_BLOCKS.sendActionBar(player);
+    }
 
-	@EventHandler(ignoreCancelled = false)
-	private void onDebugInteract(PlayerInteractEvent event) {
-		Block block = event.getClickedBlock();
-		Player player = event.getPlayer();
+    @EventHandler(ignoreCancelled = false)
+    private void onDebugInteract(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        Player player = event.getPlayer();
 
-		// Filter null blocks
-		if (block == null) {
-			return;
-		}
+        // Filter null blocks
+        if (block == null) {
+            return;
+        }
 
-		// Check item in main hand
-		ItemStack mainHand = event.getItem();
-		if (mainHand == null || mainHand.getType() != debugItem) {
-			return;
-		}
+        // Check item in main hand
+        ItemStack mainHand = event.getItem();
+        if (mainHand == null || mainHand.getType() != debugItem) {
+            return;
+        }
 
-		// Check if player has permission
-		if (!player.hasPermission(Permission.DEBUG.toString())) {
-			return;
-		}
+        // Check if player has permission
+        if (!player.hasPermission(Permission.DEBUG.toString())) {
+            return;
+        }
 
-		Action action = event.getAction();
+        Action action = event.getAction();
 
-		// On left click, get single block data
-		if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
-			// Get block data from database
-			ProtectedBlockDate blockData = plugin.getBlocksDatabase().getBlockData(block.getLocation());
-			if (blockData != null) {
-				if (blockData.getOfflinePlayer() != null) {
-					player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_TEXT.toString(plugin).formatted(
-							blockData.getOfflinePlayer().getName(),
-							blockData.printDate()
-					)));
-				} else {
-					Lang.PROTECTION_DEBUG_NO_BLOCK.sendMessage(plugin, player);
-				}
-			} else {
-				Lang.PROTECTION_DEBUG_DATABASE_FAILURE.sendMessage(plugin, player);
-			}
-		}
+        // On left click, get single block data
+        if (action == Action.LEFT_CLICK_AIR || action == Action.LEFT_CLICK_BLOCK) {
+            // Get block data from database
+            ProtectedBlockDate blockData = plugin.getBlocksDatabase().getBlockData(block.getLocation());
+            if (blockData != null) {
+                if (blockData.isNull()) {
+                    Lang.PROTECTION_DEBUG_NO_BLOCK.sendMessage(player);
+                } else {
+                    player.sendMessage(Lang.PROTECTION_DEBUG_TEXT.toColoredString().formatted(
+                            blockData.getOfflinePlayer().getName(),
+                            blockData.printDate(),
+                            blockData.isTemporaryBlock()
+                    ));
+                }
+            } else {
+                Lang.PROTECTION_DEBUG_DATABASE_FAILURE.sendMessage(player);
+            }
+        }
 
-		// On right click, mimic attempt place event and check nearby blocks
-		if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
-			List<ProtectedBlock> protectedBlocks = plugin.getBlocksDatabase().getDistinctOwnersProtectedBlocks(
-					block.getLocation(), plugin.getBlocksDatabase().getPlaceRadius());
+        // On right click, mimic attempt place event and check nearby blocks
+        if (action == Action.RIGHT_CLICK_AIR || action == Action.RIGHT_CLICK_BLOCK) {
+            List<ProtectedBlock> protectedBlocks = plugin.getBlocksDatabase().getDistinctOwnersProtectedBlocks(
+                    block.getLocation(), plugin.getBlocksDatabase().getPlaceRadius());
 
-			if (protectedBlocks.isEmpty()) {
-				Lang.PROTECTION_DEBUG_LIST_EMPTY.sendMessage(plugin, player);
-				return;
-			}
+            if (protectedBlocks.isEmpty()) {
+                Lang.PROTECTION_DEBUG_LIST_EMPTY.sendMessage(player);
+                return;
+            }
 
-			String blockString = ProtectedBlock.toString(block.getX(), block.getY(), block.getZ());
-			player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_LIST_TITLE.toString(plugin)
-					                                        .formatted(blockString)));
-			for (ProtectedBlock protectedBlock : protectedBlocks) {
-				player.sendMessage(Lang.parseLegacyText(Lang.PROTECTION_DEBUG_LIST_TEXT.toString(plugin)
-						                                        .formatted(protectedBlock.toString(plugin))));
-			}
-		}
+            String blockString = ProtectedBlock.toString(block.getX(), block.getY(), block.getZ());
+            player.sendMessage(Lang.PROTECTION_DEBUG_LIST_TITLE.toColoredString().formatted(blockString));
+            for (ProtectedBlock protectedBlock : protectedBlocks) {
+                player.sendMessage(Lang.PROTECTION_DEBUG_LIST_TEXT.toColoredString()
+                                           .formatted(protectedBlock.toString(plugin)));
+            }
+        }
 
-		// Prevent any accidental change to the block
-		event.setCancelled(true);
-	}
+        // Prevent any accidental change to the block
+        event.setCancelled(true);
+    }
 
-	@EventHandler(ignoreCancelled = true)
-	private void onAttemptInteract(AttemptInteractEvent event) {
-		Block block = event.getBlock();
-		Player player = event.getPlayer();
+    @EventHandler(ignoreCancelled = true)
+    private void onAttemptInteract(AttemptInteractEvent event) {
+        Block block = event.getBlock();
+        Player player = event.getPlayer();
 
-		// Avoid any check when not in a protected environment
-		// Interactions shouldn't warn the player
-		if (shouldIgnore(block, null)) {
-			return;
-		}
+        // Avoid any check when not in a protected environment
+        // Interactions shouldn't warn the player
+        if (shouldIgnore(block, null)) {
+            return;
+        }
 
-		// Check if material is allowed to interact
-		boolean isInventoryHolder = block.getState() instanceof InventoryHolder;
-		boolean interactionAllowed = materialsAllowedInteraction.contains(block.getType());
-		if (interactionAllowed && !isInventoryHolder) {
-			// Ignore event (allow interaction)
-			return;
-		}
+        // Check if material is allowed to interact
+        boolean isInventoryHolder = block.getState() instanceof InventoryHolder;
+        boolean interactionAllowed = materialsAllowedInteraction.contains(block.getType());
+        if (interactionAllowed && !isInventoryHolder) {
+            // Ignore event (allow interaction)
+            return;
+        }
 
-		// Ignore blocks that are not interactable
-		if (!interactionAllowed && !block.getType().isInteractable()) {
-			return;
-		}
+        // Ignore blocks that are not interactable
+        if (!interactionAllowed && !block.getType().isInteractable()) {
+            return;
+        }
 
-		// Check if is inventory holder
-		if (isInventoryHolder) {
-			// Allow if entities are interacting with inventory
-			if (player == null) {
-				return;
-			}
+        // Check if is inventory holder
+        if (isInventoryHolder) {
+            // Allow if entities are interacting with inventory
+            if (player == null) {
+                return;
+            }
 
-			// Get line of sight of player
-			for (Block next : player.getLineOfSight(null, 5)) {
-				// Skip empty or liquid
-				if (next.isEmpty() || next.isLiquid()) {
-					continue;
-				}
+            // Get line of sight of player
+            for (Block next : player.getLineOfSight(null, 5)) {
+                // Skip empty or liquid
+                if (next.isEmpty() || next.isLiquid()) {
+                    continue;
+                }
 
-				// Check if next block is the inventory holder
-				if (next.getBlockKey() != block.getBlockKey()) {
-					// If it doesn't, cancel the event and return
-					event.setCancelled(true);
-					return;
-				}
-			}
+                // Check if next block is the inventory holder
+                if (next.equals(block)) {
+                    // If it doesn't, cancel the event and return
+                    event.setCancelled(true);
+                    return;
+                }
+            }
 
-			// If it wasn't cancelled, allow
-			return;
-		}
+            // If it wasn't cancelled, allow
+            return;
+        }
 
-		// Ignore admin permission to override block interaction
-		if (player != null && player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
-			return;
-		}
+        // Ignore admin permission to override block interaction
+        if (player != null && player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+            return;
+        }
 
-		// Check if there are protected blocks nearby
-		ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-				block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getInteractRadius()
-		);
+        // Check if there are protected blocks nearby
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getInteractRadius()
+        );
 
-		// Check if it is protected
-		if (result.isProtected()) {
-			// Cancel the event
-			event.setCancelled(true);
-			// Send player message
-			sendPlayerMessage(player, result);
-		}
-		// If there isn't, allow interaction
-	}
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+            // Send player message
+            sendPlayerMessage(player, result);
+        }
+        // If there isn't, allow interaction
+    }
 
-	@EventHandler(ignoreCancelled = true)
-	private void onChorusFruitTeleport(PlayerTeleportEvent event) {
-		// Filter chorus fruit
-		if (event.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) {
-			return;
-		}
+    @EventHandler(ignoreCancelled = true)
+    private void onChorusFruitTeleport(PlayerTeleportEvent event) {
+        // Filter chorus fruit
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) {
+            return;
+        }
 
-		// Check if new location is near protected area
-		ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-				event.getTo(), event.getPlayer().getUniqueId(), plugin.getBlocksDatabase().getPlaceRadius());
+        // Ignore null destinations
+        if (event.getTo() == null) {
+            return;
+        }
 
-		// Check if it is protected
-		if (result.isProtected()) {
-			// Cancel the event
-			event.setCancelled(true);
-			// Send player message
-			sendPlayerMessage(event.getPlayer(), result);
-		}
-	}
+        // Check if new location is near protected area
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                event.getTo(), event.getPlayer().getUniqueId(), plugin.getBlocksDatabase().getPlaceRadius());
 
-	@EventHandler(ignoreCancelled = true)
-	private void onAttemptBreak(AttemptBreakEvent event) {
-		Block block = event.getBlock();
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+            // Send player message
+            sendPlayerMessage(event.getPlayer(), result);
+        }
+    }
 
-		// Avoid any check when not in a protected environment
-		if (shouldIgnore(block, null)) {
-			return;
-		}
+    @EventHandler(ignoreCancelled = true)
+    private void onAttemptBreak(AttemptBreakEvent event) {
+        Block block = event.getBlock();
 
-		// Ignore admin permission to override block break
-		if (event.getPlayer() != null && event.getPlayer().hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
-			return;
-		}
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(block, null)) {
+            return;
+        }
 
-		// Check if there are protected blocks nearby
-		ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-				block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getBreakRadius());
+        // Ignore admin permission to override block break
+        if (event.getPlayer() != null && event.getPlayer().hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+            return;
+        }
 
-		// Check if it is protected
-		if (result.isProtected()) {
-			// Cancel the event
-			event.setCancelled(true);
-			// Send player message
-			sendPlayerMessage(event.getPlayer(), result);
-		}
-		// If there isn't, allow break
-	}
+        // Check if there are protected blocks nearby
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getBreakRadius());
 
-	@EventHandler(ignoreCancelled = true)
-	private void onAttemptPlace(AttemptPlaceEvent event) {
-		Block block = event.getBlock();
-		// Avoid any check when not in a protected environment
-		if (shouldIgnore(block, event.getPlayer())) {
-			return;
-		}
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+            // Send player message
+            sendPlayerMessage(event.getPlayer(), result);
+        }
+        // If there isn't, allow break
+    }
 
-		// Check if there are protected blocks nearby
-		ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-				block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getPlaceRadius()
-		);
+    @EventHandler(ignoreCancelled = true)
+    private void onAttemptPlace(AttemptPlaceEvent event) {
+        Block block = event.getBlock();
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(block, event.getPlayer())) {
+            return;
+        }
 
-		// Check if it is protected
-		if (result.isProtected()) {
-			// Cancel the event
-			event.setCancelled(true);
-			// Send player message
-			sendPlayerMessage(event.getPlayer(), result);
-		}
-		// If there isn't, allow place
-	}
+        // Check if there are protected blocks nearby
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getPlaceRadius()
+        );
 
-	@EventHandler(ignoreCancelled = true)
-	private void onBreak(BreakEvent event) {
-		// Avoid any check when not in a protected environment
-		if (shouldIgnore(event.getBlock(), null)) {
-			return;
-		}
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+            // Send player message
+            sendPlayerMessage(event.getPlayer(), result);
+        }
+        // If there isn't, allow place
+    }
 
-		// Call protected event
-		ProtectedBreakEvent protectedBreakEvent = new ProtectedBreakEvent(event.getBlock());
-		plugin.getServer().getPluginManager().callEvent(protectedBreakEvent);
-	}
+    @EventHandler(ignoreCancelled = true)
+    private void onBreak(BreakEvent event) {
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(event.getBlock(), null)) {
+            return;
+        }
 
-	@EventHandler(ignoreCancelled = true)
-	private void onPlace(PlaceEvent event) {
-		// Avoid any check when not in a protected environment
-		Player player = event.getPlayer();
-		Block block = event.getBlock();
-		if (shouldIgnore(block, player)) {
-			return;
-		}
+        // Call protected event
+        ProtectedBreakEvent protectedBreakEvent = new ProtectedBreakEvent(event.getBlock());
+        plugin.getServer().getPluginManager().callEvent(protectedBreakEvent);
+    }
 
-		// Ignore events without a player
-		if (player == null) {
-			return;
-		}
+    @EventHandler(ignoreCancelled = true)
+    private void onPlace(PlaceEvent event) {
+        // Avoid any check when not in a protected environment
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
+        if (shouldIgnore(block, player)) {
+            return;
+        }
 
-		// Check place material
-		if (!protectedMaterials.contains(block.getType())) {
-			// Show to player that this block can't be protected
-			Lang.PROTECTION_BLOCK_NOT_PROTECTED_MATERIAL.sendActionBar(plugin, player);
-			return;
-		}
+        // Ignore events without a player
+        if (player == null) {
+            return;
+        }
 
-		// Check if player is on protection mode
-		if (!plugin.getPlayerProtectionListener().isProtecting(player)) {
-			// Show to player that needs to be sneaking
-			Lang.PROTECTION_BLOCK_NOT_PROTECTED_SNEAKING.sendActionBar(plugin, player);
-			return;
-		}
+        // Check place material
+        if (!protectedMaterials.contains(block.getType())) {
+            // Show to player that this block can't be protected
+            Lang.PROTECTION_BLOCK_NOT_PROTECTED_MATERIAL.sendActionBar(player);
+            return;
+        }
 
-		// Call protected event
-		ProtectedPlaceEvent protectedPlaceEvent = new ProtectedPlaceEvent(block, player);
-		plugin.getServer().getPluginManager().callEvent(protectedPlaceEvent);
-	}
+        // Call protected event
+        ProtectedPlaceEvent protectedPlaceEvent = new ProtectedPlaceEvent(block, player);
+        plugin.getServer().getPluginManager().callEvent(protectedPlaceEvent);
+    }
 
 }
