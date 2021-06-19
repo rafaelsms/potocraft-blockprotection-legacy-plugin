@@ -5,7 +5,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.block.BlockEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
@@ -13,7 +12,7 @@ public class PlaceEvent extends BlockEvent implements PlayerUUIDEvent {
 
     private static final HandlerList handlers = new HandlerList();
 
-    private final @Nullable Player player;
+    private final @NotNull Player player;
 
     /**
      * A block place event that may or may not be protected.
@@ -22,18 +21,18 @@ public class PlaceEvent extends BlockEvent implements PlayerUUIDEvent {
      * @param player user placing the block
      * @param block  block being placed
      */
-    public PlaceEvent(@NotNull Block block, @Nullable Player player) {
+    public PlaceEvent(@NotNull Block block, @NotNull Player player) {
         super(block);
         this.player = player;
     }
 
-    public @Nullable Player getPlayer() {
+    public @NotNull Player getPlayer() {
         return player;
     }
 
     @Override
-    public @Nullable UUID getPlayerUUID() {
-        return player != null ? player.getUniqueId() : null;
+    public @NotNull UUID getPlayerUUID() {
+        return player.getUniqueId();
     }
 
     @Override

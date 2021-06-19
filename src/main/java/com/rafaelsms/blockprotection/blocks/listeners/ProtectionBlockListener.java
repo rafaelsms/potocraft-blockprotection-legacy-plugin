@@ -5,10 +5,7 @@ import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.Lang;
 import com.rafaelsms.blockprotection.Permission;
 import com.rafaelsms.blockprotection.blocks.events.*;
-import com.rafaelsms.blockprotection.util.Listener;
-import com.rafaelsms.blockprotection.util.ProtectedBlock;
-import com.rafaelsms.blockprotection.util.ProtectedBlockDate;
-import com.rafaelsms.blockprotection.util.ProtectionQuery;
+import com.rafaelsms.blockprotection.util.*;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -241,7 +238,7 @@ public class ProtectionBlockListener extends Listener {
                 }
 
                 // Check if next block is the inventory holder
-                if (next.equals(block)) {
+                if (!BlockKey.fromBlock(block).equals(BlockKey.fromBlock(next))) {
                     // If it doesn't, cancel the event and return
                     event.setCancelled(true);
                     return;
@@ -366,11 +363,6 @@ public class ProtectionBlockListener extends Listener {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         if (shouldIgnore(block, player)) {
-            return;
-        }
-
-        // Ignore events without a player
-        if (player == null) {
             return;
         }
 

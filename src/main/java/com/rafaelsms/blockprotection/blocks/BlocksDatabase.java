@@ -64,7 +64,7 @@ public class BlocksDatabase extends Database {
                       `x` int NOT NULL,
                       `y` int NOT NULL,
                       `z` int NOT NULL,
-                      `temporaryBlock` tinyint(1) NOT NULL DEFAULT '1',
+                      `temporaryBlock` tinyint(1) NOT NULL DEFAULT TRUE,
                       `lastModification` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                       `owner` binary(16) NOT NULL,
                       PRIMARY KEY (`world`,`x`,`y`,`z`),
@@ -206,7 +206,7 @@ public class BlocksDatabase extends Database {
                         `blocks`.`x` BETWEEN ? AND ? AND
                         `blocks`.`y` BETWEEN ? AND ? AND
                         `blocks`.`z` BETWEEN ? AND ? AND
-                        `blocks`.`temporaryBlock` = 0 AND
+                        `blocks`.`temporaryBlock` = FALSE AND
                         `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY)
                     GROUP BY `blocks`.`owner`;
                     """;
@@ -289,7 +289,7 @@ public class BlocksDatabase extends Database {
                         `blocks`.`x` BETWEEN ? AND ? AND
                         `blocks`.`y` BETWEEN ? AND ? AND
                         `blocks`.`z` BETWEEN ? AND ? AND
-                        `blocks`.`temporaryBlock` = 0 AND
+                        `blocks`.`temporaryBlock` = FALSE AND
                         `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY)
                     LIMIT 1;
                     """;
@@ -330,7 +330,7 @@ public class BlocksDatabase extends Database {
                         `blocks`.`x` BETWEEN ? AND ? AND
                         `blocks`.`y` BETWEEN ? AND ? AND
                         `blocks`.`z` BETWEEN ? AND ? AND
-                        `blocks`.`temporaryBlock` = 0 AND
+                        `blocks`.`temporaryBlock` = FALSE AND
                         `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY) AND
                         `blocks`.`owner` != UUID_TO_BIN(?) AND
                         UUID_TO_BIN(?) NOT IN (
@@ -380,7 +380,7 @@ public class BlocksDatabase extends Database {
                         ?, ?,
                         ?, ?, ?,
                         UUID_TO_BIN(?),
-                        1
+                        TRUE
                     ) ON DUPLICATE KEY UPDATE `owner` = UUID_TO_BIN(?);
                     """;
             PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_BLOCK);
@@ -435,7 +435,7 @@ public class BlocksDatabase extends Database {
                         UPDATE
                             `blockprotection`.`blocks`
                         SET
-                            `blocks`.`temporaryBlock` = 0
+                            `blocks`.`temporaryBlock` = FALSE
                         WHERE
                             `blocks`.`world` = UUID_TO_BIN(?) AND
                             `blocks`.`chunkX` BETWEEN ? AND ? AND
