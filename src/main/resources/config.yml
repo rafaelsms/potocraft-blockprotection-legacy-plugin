@@ -1,6 +1,6 @@
 config:
   database:
-    url: jdbc:mysql://localhost/database
+    url: jdbc:mysql://localhost/database?verifyServerCertificate=false&useSSL=true
     user: user
     password: password
     pool_size: 20
@@ -47,9 +47,9 @@ config:
     protection_break_radius: 6
     protection_place_radius: 10
     protection_interact_radius: 4
-    protection_update_radius: 10
-    protection_search_radius: 2
-    protection_block_count: 7
+    protection_update_time_radius: 10
+    protection_search_radius: 4
+    protection_block_count: 14
     stop_fire_spread: true
     protected_worlds:
       - world
@@ -485,3 +485,57 @@ config:
         - STONE_STAIRS
         - WARPED_STAIRS
         - DIRT_PATH
+        - DEEPSLATE
+        - DEEPSLATE_BRICKS
+        - DEEPSLATE_BRICK_SLAB
+        - DEEPSLATE_BRICK_STAIRS
+        - DEEPSLATE_BRICK_WALL
+        - DEEPSLATE_TILES
+        - DEEPSLATE_TILE_SLAB
+        - DEEPSLATE_TILE_STAIRS
+        - DEEPSLATE_TILE_WALL
+        - EXPOSED_COPPER
+        - EXPOSED_CUT_COPPER
+        - EXPOSED_CUT_COPPER_SLAB
+        - EXPOSED_CUT_COPPER_STAIRS
+        - COBBLED_DEEPSLATE
+        - COBBLED_DEEPSLATE_SLAB
+        - COBBLED_DEEPSLATE_STAIRS
+        - COBBLED_DEEPSLATE_WALL
+        - CRACKED_DEEPSLATE_BRICKS
+        - CRACKED_DEEPSLATE_TILES
+        - POLISHED_DEEPSLATE
+        - POLISHED_DEEPSLATE_SLAB
+        - POLISHED_DEEPSLATE_STAIRS
+        - POLISHED_DEEPSLATE_WALL
+        - RAW_COPPER_BLOCK
+        - RAW_GOLD_BLOCK
+        - RAW_IRON_BLOCK
+        - SMOOTH_BASALT
+        - WAXED_COPPER_BLOCK
+        - WAXED_CUT_COPPER
+        - WAXED_CUT_COPPER_SLAB
+        - WAXED_CUT_COPPER_STAIRS
+        - WAXED_EXPOSED_COPPER
+        - WAXED_EXPOSED_CUT_COPPER
+        - WAXED_EXPOSED_CUT_COPPER_SLAB
+        - WAXED_EXPOSED_CUT_COPPER_STAIRS
+        - WAXED_OXIDIZED_COPPER
+        - WAXED_OXIDIZED_CUT_COPPER
+        - WAXED_OXIDIZED_CUT_COPPER_SLAB
+        - WAXED_OXIDIZED_CUT_COPPER_STAIRS
+        - WAXED_WEATHERED_COPPER
+        - WAXED_WEATHERED_CUT_COPPER
+        - WAXED_WEATHERED_CUT_COPPER_SLAB
+        - WAXED_WEATHERED_CUT_COPPER_STAIRS
+        - WEATHERED_COPPER
+        - WEATHERED_CUT_COPPER
+        - WEATHERED_CUT_COPPER_SLAB
+        - WEATHERED_CUT_COPPER_STAIRS
+        - COPPER_BLOCK
+        - CALCITE
+        - ROOTED_DIRT
+        - AMETHYST_BLOCK
+        - CUT_COPPER
+        - CUT_COPPER_SLAB
+        - CUT_COPPER_STAIRS
