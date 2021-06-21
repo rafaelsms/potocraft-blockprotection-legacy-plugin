@@ -2,12 +2,11 @@ package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.blocks.events.AttemptBreakEvent;
-import com.rafaelsms.blockprotection.blocks.events.AttemptPlaceEvent;
 import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -114,9 +113,15 @@ public class BlockBreakListener implements Listener {
             return;
         }
 
+        // Check if entity is a player
+        Player player = null;
+        if (event.getEntityType() == EntityType.PLAYER) {
+            player = (Player) event.getEntity();
+        }
+
         // Check on block place or break
         if (!event.getTo().isSolid()) {
-            AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
+            AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), player);
             plugin.getServer().getPluginManager().callEvent(breakEvent);
 
             // Check if event was cancelled
@@ -128,22 +133,17 @@ public class BlockBreakListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBucketFill(PlayerBucketFillEvent event) {
-        AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
-        plugin.getServer().getPluginManager().callEvent(placeEvent);
+        AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
+        plugin.getServer().getPluginManager().callEvent(breakEvent);
 
         // Check if event was cancelled
-        if (placeEvent.isCancelled()) {
-            event.setCancelled(false);
+        if (breakEvent.isCancelled()) {
+            event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onDamage(BlockDamageEvent event) {
-        // Ignore if block state is Ageable
-        if (event.getBlock().getBlockData() instanceof Ageable) {
-            return;
-        }
-
         AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
 
@@ -155,11 +155,6 @@ public class BlockBreakListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBreak(BlockBreakEvent event) {
-        // Ignore if block state is Ageable
-        if (event.getBlock().getBlockData() instanceof Ageable) {
-            return;
-        }
-
         AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
 
@@ -171,11 +166,6 @@ public class BlockBreakListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onBreakMonitor(BlockBreakEvent event) {
-        // Ignore if block state is Ageable
-        if (event.getBlock().getBlockData() instanceof Ageable) {
-            return;
-        }
-
         BreakEvent breakEvent = new BreakEvent(event.getBlock());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
     }

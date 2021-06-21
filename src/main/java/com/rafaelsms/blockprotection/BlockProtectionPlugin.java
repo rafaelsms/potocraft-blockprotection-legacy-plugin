@@ -22,7 +22,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
     // Listener
     private BlockBreakListener blockBreakListener;
-    private BlockInteractListener blockInteractListener;
     private BlockPistonListener blockPistonListener;
     private BlockPlaceListener blockPlaceListener;
     private DatabaseListener databaseListener;
@@ -66,7 +65,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
             // Initialize listeners
             blockBreakListener = new BlockBreakListener(this);
-            blockInteractListener = new BlockInteractListener(this);
             blockPistonListener = new BlockPistonListener(this);
             blockPlaceListener = new BlockPlaceListener(this);
             databaseListener = new DatabaseListener(this);
@@ -75,7 +73,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
             // Register listeners
             getServer().getPluginManager().registerEvents(blockBreakListener, this);
-            getServer().getPluginManager().registerEvents(blockInteractListener, this);
             getServer().getPluginManager().registerEvents(blockPistonListener, this);
             getServer().getPluginManager().registerEvents(blockPlaceListener, this);
             getServer().getPluginManager().registerEvents(databaseListener, this);
@@ -114,7 +111,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
         // Delete listeners
         blockBreakListener = null;
-        blockInteractListener = null;
         blockPistonListener = null;
         blockPlaceListener = null;
         databaseListener = null;

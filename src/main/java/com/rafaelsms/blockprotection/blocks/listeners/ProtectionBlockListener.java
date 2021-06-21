@@ -14,6 +14,7 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -28,8 +29,10 @@ public class ProtectionBlockListener extends Listener {
 
     // Configuration
     private final Set<UUID> protectedWorlds;
-    private final Set<Material> materialsAllowedInteraction;
+
+    private final Set<Material> deniedInteractionMaterials;
     private final Set<Material> protectedMaterials;
+
     private final int minimumProtectedHeight;
     private final Material debugItem;
 
@@ -67,31 +70,27 @@ public class ProtectionBlockListener extends Listener {
         this.protectedWorlds = Collections.unmodifiableSet(protectedWorlds);
 
         // Check allowed materials
-        HashSet<Material> materialsAllowedInteraction = new HashSet<>();
-        for (String material : Config.PROTECTION_MATERIALS_ALLOWED_INTERACTION.getStringList()) {
-            try {
-                materialsAllowedInteraction.add(Material.valueOf(material));
-            } catch (Exception exception) {
-                plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
-                exception.printStackTrace();
-            }
-        }
-        this.materialsAllowedInteraction = Collections.unmodifiableSet(materialsAllowedInteraction);
-        plugin.getLogger().info("%d materials are allowed to be interactable by anyone".formatted(
-                this.materialsAllowedInteraction.size()));
+        this.deniedInteractionMaterials = getMaterialsFromList(
+                Config.PROTECTION_MATERIALS_DENIED_INTERACTION.getStringList());
+        plugin.getLogger().info(
+                "%d materials that cannot be interacted by anyone".formatted(this.deniedInteractionMaterials.size()));
 
         // Check protected materials
-        HashSet<Material> protectedMaterials = new HashSet<>();
-        for (String material : Config.PROTECTION_MATERIALS_PROTECTED.getStringList()) {
+        this.protectedMaterials = getMaterialsFromList(Config.PROTECTION_MATERIALS_PROTECTED.getStringList());
+        plugin.getLogger().info("%d materials are going to be protected".formatted(this.protectedMaterials.size()));
+    }
+
+    private Set<Material> getMaterialsFromList(List<String> materialsNames) {
+        HashSet<Material> materials = new HashSet<>();
+        for (String material : materialsNames) {
             try {
-                protectedMaterials.add(Material.valueOf(material));
+                materials.add(Material.valueOf(material));
             } catch (Exception exception) {
                 plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
                 exception.printStackTrace();
             }
         }
-        this.protectedMaterials = Collections.unmodifiableSet(protectedMaterials);
-        plugin.getLogger().info("%d materials are going to be protected".formatted(this.protectedMaterials.size()));
+        return Collections.unmodifiableSet(materials);
     }
 
     private boolean shouldIgnore(Block block, @Nullable Player player) {
@@ -200,36 +199,63 @@ public class ProtectionBlockListener extends Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    private void onAttemptInteract(AttemptInteractEvent event) {
-        Block block = event.getBlock();
+    private void onAttemptInteract(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
         Player player = event.getPlayer();
 
+        // Ignore when interacting with no blocks
+        if (block == null) {
+            return;
+        }
+
         // Avoid any check when not in a protected environment
-        // Interactions shouldn't warn the player
         if (shouldIgnore(block, null)) {
             return;
         }
 
-        // Check if material is allowed to interact
-        boolean isInventoryHolder = block.getState() instanceof InventoryHolder;
-        boolean interactionAllowed = materialsAllowedInteraction.contains(block.getType());
-        if (interactionAllowed && !isInventoryHolder) {
-            // Ignore event (allow interaction)
+        // Ignore denied interactions
+        if (!deniedInteractionMaterials.contains(block.getType())) {
             return;
         }
 
-        // Ignore blocks that are not interactable
-        if (!interactionAllowed && !block.getType().isInteractable()) {
+        // Ignore admin permission to override block interaction
+        if (player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+            return;
+        }
+
+        // Since this includes a denied material, check permissions
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                block.getLocation(), event.getPlayer().getUniqueId(), plugin.getBlocksDatabase().getInteractRadius()
+        );
+
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
+            // Send player message
+            sendPlayerMessage(player, result);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private void onOpenInventoryHolder(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        Player player = event.getPlayer();
+
+        // Ignore when interacting with no blocks
+        if (block == null) {
+            return;
+        }
+
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(block, null)) {
             return;
         }
 
         // Check if is inventory holder
-        if (isInventoryHolder) {
-            // Allow if entities are interacting with inventory
-            if (player == null) {
-                return;
-            }
-
+        if (block.getState() instanceof InventoryHolder) {
             // Get line of sight of player
             for (Block next : player.getLineOfSight(null, 5)) {
                 // Skip empty or liquid
@@ -241,32 +267,12 @@ public class ProtectionBlockListener extends Listener {
                 if (!BlockKey.fromBlock(block).equals(BlockKey.fromBlock(next))) {
                     // If it doesn't, cancel the event and return
                     event.setCancelled(true);
+                    event.setUseInteractedBlock(Event.Result.DENY);
+                    event.setUseItemInHand(Event.Result.DENY);
                     return;
                 }
             }
-
-            // If it wasn't cancelled, allow
-            return;
         }
-
-        // Ignore admin permission to override block interaction
-        if (player != null && player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
-            return;
-        }
-
-        // Check if there are protected blocks nearby
-        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-                block.getLocation(), event.getPlayerUUID(), plugin.getBlocksDatabase().getInteractRadius()
-        );
-
-        // Check if it is protected
-        if (result.isProtected()) {
-            // Cancel the event
-            event.setCancelled(true);
-            // Send player message
-            sendPlayerMessage(player, result);
-        }
-        // If there isn't, allow interaction
     }
 
     @EventHandler(ignoreCancelled = true)

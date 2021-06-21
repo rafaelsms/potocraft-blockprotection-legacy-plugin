@@ -23,7 +23,7 @@ public enum Config {
     PROTECTION_PROTECTED_WORLDS("config.protection.protected_worlds"),
     // Materials
     PROTECTION_DEBUG_ITEM("config.protection.materials.debug_item"),
-    PROTECTION_MATERIALS_ALLOWED_INTERACTION("config.protection.materials.allowed_interaction"),
+    PROTECTION_MATERIALS_DENIED_INTERACTION("config.protection.materials.denied_interaction"),
     PROTECTION_MATERIALS_PROTECTED("config.protection.materials.protected_materials"),
 
     ;
