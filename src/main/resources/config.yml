@@ -62,6 +62,15 @@ config:
         - STONE_BUTTON
         - LEVER
         - IRON_TRAPDOOR
+        - ACACIA_FENCE_GATE
+        - BIRCH_FENCE_GATE
+        - CRIMSON_FENCE_GATE
+        - DARK_OAK_FENCE_GATE
+        - JUNGLE_FENCE_GATE
+        - NETHER_BRICK_FENCE
+        - OAK_FENCE_GATE
+        - SPRUCE_FENCE_GATE
+        - WARPED_FENCE_GATE
       protected_materials:
         - ACACIA_LOG
         - ACACIA_PLANKS
