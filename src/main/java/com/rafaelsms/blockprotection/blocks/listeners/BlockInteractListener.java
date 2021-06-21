@@ -8,6 +8,7 @@ import org.bukkit.block.Block;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 public class BlockInteractListener extends Listener {
@@ -21,6 +22,12 @@ public class BlockInteractListener extends Listener {
         // Let's ignore when no block is involved
         Block clickedBlock = event.getClickedBlock();
         if (event.useInteractedBlock() == Event.Result.DENY || clickedBlock == null) {
+            return;
+        }
+
+        // Check if interaction happened with air
+        if (event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
+            event.setUseInteractedBlock(Event.Result.DENY);
             return;
         }
 
@@ -38,6 +45,11 @@ public class BlockInteractListener extends Listener {
         // Check if there isn't a clicked block
         Block clickedBlock = event.getClickedBlock();
         if (event.useInteractedBlock() == Event.Result.DENY || clickedBlock == null) {
+            return;
+        }
+
+        // Check if interaction happened with air
+        if (event.getAction().equals(Action.LEFT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_AIR)) {
             return;
         }
 

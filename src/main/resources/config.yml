@@ -482,7 +482,6 @@ config:
         - STONE_STAIRS
         - WARPED_STAIRS
         - DIRT_PATH
-        - FARMLAND
         - DEEPSLATE
         - DEEPSLATE_BRICKS
         - DEEPSLATE_BRICK_SLAB
