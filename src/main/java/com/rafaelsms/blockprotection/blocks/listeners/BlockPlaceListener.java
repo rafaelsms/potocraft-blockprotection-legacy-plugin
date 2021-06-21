@@ -6,6 +6,7 @@ import com.rafaelsms.blockprotection.blocks.events.AttemptPlaceEvent;
 import com.rafaelsms.blockprotection.blocks.events.PlaceEvent;
 import org.bukkit.Material;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,6 +16,7 @@ import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 
 public class BlockPlaceListener implements Listener {
@@ -108,6 +110,11 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onCanBuildBlock(BlockCanBuildEvent event) {
+        // Ignore if block state is Ageable
+        if (event.getBlock().getBlockData() instanceof Ageable) {
+            return;
+        }
+
         AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
         plugin.getServer().getPluginManager().callEvent(placeEvent);
 
@@ -118,7 +125,23 @@ public class BlockPlaceListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    private void onBucketEmpty(PlayerBucketEmptyEvent event) {
+        AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
+        plugin.getServer().getPluginManager().callEvent(placeEvent);
+
+        // Check if event was cancelled
+        if (placeEvent.isCancelled()) {
+            event.setCancelled(false);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onPlace(BlockPlaceEvent event) {
+        // Ignore if block state is Ageable
+        if (event.getBlock().getBlockData() instanceof Ageable) {
+            return;
+        }
+
         AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
         plugin.getServer().getPluginManager().callEvent(placeEvent);
 
@@ -137,6 +160,11 @@ public class BlockPlaceListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onPlaceMonitor(BlockPlaceEvent event) {
+        // Ignore if block state is Ageable
+        if (event.getBlock().getBlockData() instanceof Ageable) {
+            return;
+        }
+
         PlaceEvent placeEvent = new PlaceEvent(event.getBlock(), event.getPlayer());
         plugin.getServer().getPluginManager().callEvent(placeEvent);
     }

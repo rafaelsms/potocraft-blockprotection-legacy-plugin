@@ -140,6 +140,21 @@ config:
         - OAK_PRESSURE_PLATE
         - SPRUCE_PRESSURE_PLATE
         - WARPED_PRESSURE_PLATE
+        - BEETROOTS
+        - CACTUS
+        - CARROTS
+        - CHORUS_FLOWER
+        - ATTACHED_MELON_STEM
+        - MELON_STEM
+        - NETHER_WART
+        - POTATOES
+        - ATTACHED_PUMPKIN_STEM
+        - PUMPKIN_STEM
+        - SUGAR_CANE
+        - SWEET_BERRY_BUSH
+        - WHEAT
+        - PUMPKIN
+        - MELON
       protected_materials:
         - ACACIA_LOG
         - ACACIA_PLANKS
@@ -482,6 +497,7 @@ config:
         - STONE_STAIRS
         - WARPED_STAIRS
         - DIRT_PATH
+        - FARMLAND
         - DEEPSLATE
         - DEEPSLATE_BRICKS
         - DEEPSLATE_BRICK_SLAB
@@ -491,10 +507,6 @@ config:
         - DEEPSLATE_TILE_SLAB
         - DEEPSLATE_TILE_STAIRS
         - DEEPSLATE_TILE_WALL
-        - EXPOSED_COPPER
-        - EXPOSED_CUT_COPPER
-        - EXPOSED_CUT_COPPER_SLAB
-        - EXPOSED_CUT_COPPER_STAIRS
         - COBBLED_DEEPSLATE
         - COBBLED_DEEPSLATE_SLAB
         - COBBLED_DEEPSLATE_STAIRS
@@ -525,11 +537,6 @@ config:
         - WAXED_WEATHERED_CUT_COPPER
         - WAXED_WEATHERED_CUT_COPPER_SLAB
         - WAXED_WEATHERED_CUT_COPPER_STAIRS
-        - WEATHERED_COPPER
-        - WEATHERED_CUT_COPPER
-        - WEATHERED_CUT_COPPER_SLAB
-        - WEATHERED_CUT_COPPER_STAIRS
-        - COPPER_BLOCK
         - CALCITE
         - ROOTED_DIRT
         - AMETHYST_BLOCK
