@@ -17,8 +17,6 @@ public enum Lang {
     PROTECTION_UNDER_MINIMUM_HEIGHT("config.lang.protection.block_under_minimum_height"),
     PROTECTION_UNPROTECTED_WORLD("config.lang.protection.unprotected_world"),
     PROTECTION_BLOCK_NOT_PROTECTED_MATERIAL("config.lang.protection.unprotected_material_placed"),
-    PROTECTION_BLOCK_PROTECTING("config.lang.protection.protecting"),
-    PROTECTION_BLOCK_NOT_PROTECTING("config.lang.protection.not_protecing"),
     PROTECTION_DATABASE_FAILURE("config.lang.protection.database_insert_failure"),
     // Debug
     PROTECTION_DEBUG_DATABASE_FAILURE("config.lang.protection.debug.database_failure"),

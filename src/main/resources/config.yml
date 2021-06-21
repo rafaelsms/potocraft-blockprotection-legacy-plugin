@@ -11,8 +11,6 @@ config:
       block_under_minimum_height: "&cUnder protected height"
       unprotected_world: "&cUnprotected world"
       unprotected_material_placed: "&cMaterial can't be protected"
-      protecting: "&aBlock is protected"
-      not_protecing: "&cNot enough blocks to protect"
       database_insert_failure: "&4Database failure on protection"
       debug:
         no_block: "&dDebug: &cthere is no block"
@@ -45,7 +43,7 @@ config:
     minimum_height_to_protect: 42
     protection_break_radius: 6
     protection_place_radius: 10
-    protection_interact_radius: 4
+    protection_interact_radius: 6
     protection_update_time_radius: 10
     protection_search_radius: 4
     protection_block_count: 16
