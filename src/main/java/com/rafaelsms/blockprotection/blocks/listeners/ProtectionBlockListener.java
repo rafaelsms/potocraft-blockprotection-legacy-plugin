@@ -276,9 +276,10 @@ public class ProtectionBlockListener extends Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    private void onChorusFruitTeleport(PlayerTeleportEvent event) {
+    private void onTeleport(PlayerTeleportEvent event) {
         // Filter chorus fruit
-        if (event.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) {
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT &&
+                    event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
             return;
         }
 
