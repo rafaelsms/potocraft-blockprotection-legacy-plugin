@@ -47,7 +47,6 @@ config:
     protection_update_time_radius: 10
     protection_search_radius: 4
     protection_block_count: 16
-    stop_fire_spread: true
     protected_worlds:
       - world
     materials:

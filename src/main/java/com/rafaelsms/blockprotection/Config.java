@@ -19,7 +19,6 @@ public enum Config {
     PROTECTION_PROTECTION_UPDATE_RADIUS("config.protection.protection_update_time_radius"),
     PROTECTION_PROTECTION_SEARCH_RADIUS("config.protection.protection_search_radius"),
     PROTECTION_PROTECTION_BLOCK_COUNT("config.protection.protection_block_count"),
-    PROTECTION_STOP_FIRE_SPREAD("config.protection.stop_fire_spread"),
     PROTECTION_PROTECTED_WORLDS("config.protection.protected_worlds"),
     // Materials
     PROTECTION_DEBUG_ITEM("config.protection.materials.debug_item"),

@@ -1,7 +1,6 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
-import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.blocks.events.AttemptPlaceEvent;
 import com.rafaelsms.blockprotection.blocks.events.PlaceEvent;
 import org.bukkit.Material;
@@ -23,12 +22,8 @@ public class BlockPlaceListener implements Listener {
 
     private final BlockProtectionPlugin plugin;
 
-    private final boolean stopFireSpread;
-
     public BlockPlaceListener(BlockProtectionPlugin plugin) {
         this.plugin = plugin;
-        // Get configuration
-        stopFireSpread = Config.PROTECTION_STOP_FIRE_SPREAD.getBoolean();
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -97,7 +92,7 @@ public class BlockPlaceListener implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onSpreadBlock(BlockSpreadEvent event) {
         // Check if we need to skip fire altogether
-        if (stopFireSpread && event.getSource().getType() == Material.FIRE) {
+        if (event.getSource().getType() == Material.FIRE) {
             event.getSource().setType(Material.AIR);
             event.setCancelled(true);
         }
