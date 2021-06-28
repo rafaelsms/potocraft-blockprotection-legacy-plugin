@@ -20,7 +20,7 @@ public class ProtectionQuery {
     }
 
     public Result getResult() {
-            return result;
+        return result;
     }
 
     public boolean isProtected() {
