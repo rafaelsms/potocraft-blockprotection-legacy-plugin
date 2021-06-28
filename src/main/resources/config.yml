@@ -39,14 +39,14 @@ config:
         command_help: "&6To delete a friend, type &a/delfriend <name of friend>&6"
         friend_deleted: "&4%s &cremoved from your friend list!"
   protection:
-    protected_for_days: 14
-    minimum_height_to_protect: 42
-    protection_break_radius: 6
-    protection_place_radius: 10
-    protection_interact_radius: 6
-    protection_update_time_radius: 10
-    protection_search_radius: 4
-    protection_block_count: 16
+    protected_for_days: 7
+    minimum_height_to_protect: 36
+    protection_break_radius: 7
+    protection_place_radius: 14
+    protection_interact_radius: 10
+    protection_update_time_radius: 14
+    protection_search_radius: 5
+    protection_block_count: 23
     protected_worlds:
       - world
     materials:
