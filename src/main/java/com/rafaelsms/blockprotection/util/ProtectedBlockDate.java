@@ -1,6 +1,8 @@
 package com.rafaelsms.blockprotection.util;
 
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -11,7 +13,8 @@ public class ProtectedBlockDate {
     private final LocalDateTime dateTime;
     private final boolean temporaryBlock;
 
-    public ProtectedBlockDate(OfflinePlayer offlinePlayer, LocalDateTime dateTime, boolean temporaryBlock) {
+    public ProtectedBlockDate(@Nullable OfflinePlayer offlinePlayer, @NotNull LocalDateTime dateTime,
+                              boolean temporaryBlock) {
         this.offlinePlayer = offlinePlayer;
         this.dateTime = dateTime;
         this.temporaryBlock = temporaryBlock;
@@ -23,15 +26,19 @@ public class ProtectedBlockDate {
         this.temporaryBlock = true;
     }
 
-    public boolean isNull() {
-        return offlinePlayer == null || dateTime == null;
+    public boolean isNotRegistered() {
+        return dateTime == null;
     }
 
-    public OfflinePlayer getOfflinePlayer() {
+    public @Nullable OfflinePlayer getOfflinePlayer() {
         return offlinePlayer;
     }
 
-    public String printDate() {
+    public @NotNull String printOfflinePlayer() {
+        return offlinePlayer != null && offlinePlayer.getName() != null ? offlinePlayer.getName() : "null";
+    }
+
+    public @NotNull String printDate() {
         return dateTime != null ? dateTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss")) : "null";
     }
 

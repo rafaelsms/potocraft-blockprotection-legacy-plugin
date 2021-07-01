@@ -162,11 +162,11 @@ public class ProtectionBlockListener extends Listener {
             // Get block data from database
             ProtectedBlockDate blockData = plugin.getBlocksDatabase().getBlockData(block.getLocation());
             if (blockData != null) {
-                if (blockData.isNull()) {
+                if (blockData.isNotRegistered()) {
                     Lang.PROTECTION_DEBUG_NO_BLOCK.sendMessage(player);
                 } else {
                     player.sendMessage(Lang.PROTECTION_DEBUG_TEXT.toColoredString().formatted(
-                            blockData.getOfflinePlayer().getName(),
+                            blockData.printOfflinePlayer(),
                             blockData.printDate(),
                             blockData.isTemporaryBlock()
                     ));
