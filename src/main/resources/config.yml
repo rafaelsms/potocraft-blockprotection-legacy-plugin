@@ -44,7 +44,7 @@ config:
     minimum_height_to_protect: 36
     protection_break_radius: 7
     protection_place_radius: 14
-    protection_interact_radius: 10
+    protection_interact_radius: 6
     protection_update_time_radius: 14
     protection_search_radius: 5
     protection_block_count: 23
