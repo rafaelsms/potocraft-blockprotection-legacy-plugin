@@ -3,6 +3,7 @@ package com.rafaelsms.blockprotection.blocks.listeners;
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.blocks.events.AttemptBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
@@ -16,7 +17,9 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 
-import java.util.Iterator;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class BlockBreakListener implements Listener {
 
@@ -28,17 +31,65 @@ public class BlockBreakListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onEntityExplodeBlocks(EntityExplodeEvent event) {
-        Iterator<Block> iterator = event.blockList().iterator();
-        while (iterator.hasNext()) {
-            Block block = iterator.next();
+        List<Location> blockListLocations = event.blockList().stream()
+                .map(Block::getLocation)
+                .collect(Collectors.toList());
 
-            AttemptBreakEvent breakEvent = new AttemptBreakEvent(block, null);
+        int maxX = event.getLocation().getBlockX();
+        int minX = event.getLocation().getBlockX();
+        int maxY = event.getLocation().getBlockY();
+        int minY = event.getLocation().getBlockY();
+        int maxZ = event.getLocation().getBlockZ();
+        int minZ = event.getLocation().getBlockZ();
+
+        for (Location location : blockListLocations) {
+            // Check X
+            int blockX = location.getBlockX();
+            if (blockX > maxX) {
+                maxX = blockX;
+            } else if (blockX < minX) {
+                minX = blockX;
+            }
+            // Check Y
+            int blockY = location.getBlockY();
+            if (blockY > maxY) {
+                maxY = blockY;
+            } else if (blockY < minY) {
+                minY = blockY;
+            }
+            // Check Z
+            int blockZ = location.getBlockZ();
+            if (blockZ > maxZ) {
+                maxZ = blockZ;
+            } else if (blockZ < minZ) {
+                minZ = blockZ;
+            }
+        }
+
+        // Check every corner, stop if any have a blocking block
+        List<Location> locations = Arrays.asList(
+                new Location(event.getLocation().getWorld(), minX, minY, minZ),
+
+                new Location(event.getLocation().getWorld(), minX, minY, maxZ),
+                new Location(event.getLocation().getWorld(), minX, maxY, minZ),
+                new Location(event.getLocation().getWorld(), maxX, minY, minZ),
+
+                new Location(event.getLocation().getWorld(), minX, maxY, maxZ),
+                new Location(event.getLocation().getWorld(), maxX, minY, maxZ),
+                new Location(event.getLocation().getWorld(), maxX, maxY, minZ),
+
+                new Location(event.getLocation().getWorld(), maxX, maxY, maxZ)
+                );
+
+        for (Location location : locations) {
+            AttemptBreakEvent breakEvent = new AttemptBreakEvent(location.getBlock(), null);
             plugin.getServer().getPluginManager().callEvent(breakEvent);
 
             // Check if event was cancelled
             if (breakEvent.isCancelled()) {
-                // Remove the block and continue searching
-                iterator.remove();
+                // Remove every block
+                event.blockList().clear();
+                return;
             }
         }
     }
@@ -105,10 +156,10 @@ public class BlockBreakListener implements Listener {
 
         // Check if entity is a falling block or a primed TNT
         if (event.getEntityType() == EntityType.FALLING_BLOCK ||
-                    event.getEntityType() == EntityType.PRIMED_TNT ||
-                    event.getEntityType() == EntityType.VILLAGER ||
-                    event.getEntityType() == EntityType.BEE ||
-                    event.getEntityType() == EntityType.TURTLE) {
+                event.getEntityType() == EntityType.PRIMED_TNT ||
+                event.getEntityType() == EntityType.VILLAGER ||
+                event.getEntityType() == EntityType.BEE ||
+                event.getEntityType() == EntityType.TURTLE) {
             // allow these entities
             return;
         }
