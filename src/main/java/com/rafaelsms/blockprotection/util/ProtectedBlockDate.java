@@ -11,18 +11,21 @@ public class ProtectedBlockDate {
 
     private final OfflinePlayer offlinePlayer;
     private final LocalDateTime dateTime;
+    private final boolean validBlock;
     private final boolean temporaryBlock;
 
     public ProtectedBlockDate(@Nullable OfflinePlayer offlinePlayer, @NotNull LocalDateTime dateTime,
-                              boolean temporaryBlock) {
+                              boolean validBlock, boolean temporaryBlock) {
         this.offlinePlayer = offlinePlayer;
         this.dateTime = dateTime;
+        this.validBlock = validBlock;
         this.temporaryBlock = temporaryBlock;
     }
 
     public ProtectedBlockDate() {
         this.offlinePlayer = null;
         this.dateTime = null;
+        this.validBlock = false;
         this.temporaryBlock = true;
     }
 
@@ -44,5 +47,9 @@ public class ProtectedBlockDate {
 
     public boolean isTemporaryBlock() {
         return temporaryBlock;
+    }
+
+    public boolean isValid() {
+        return validBlock;
     }
 }

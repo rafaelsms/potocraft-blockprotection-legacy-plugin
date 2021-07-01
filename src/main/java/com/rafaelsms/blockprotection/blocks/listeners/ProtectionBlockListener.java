@@ -168,7 +168,8 @@ public class ProtectionBlockListener extends Listener {
                     player.sendMessage(Lang.PROTECTION_DEBUG_TEXT.toColoredString().formatted(
                             blockData.printOfflinePlayer(),
                             blockData.printDate(),
-                            blockData.isTemporaryBlock()
+                            blockData.isTemporaryBlock(),
+                            blockData.isValid()
                     ));
                 }
             } else {
@@ -190,7 +191,7 @@ public class ProtectionBlockListener extends Listener {
             player.sendMessage(Lang.PROTECTION_DEBUG_LIST_TITLE.toColoredString().formatted(blockString));
             for (ProtectedBlock protectedBlock : protectedBlocks) {
                 player.sendMessage(Lang.PROTECTION_DEBUG_LIST_TEXT.toColoredString()
-                                           .formatted(protectedBlock.toString(plugin)));
+                        .formatted(protectedBlock.toString(plugin)));
             }
         }
 
@@ -279,7 +280,7 @@ public class ProtectionBlockListener extends Listener {
     private void onTeleport(PlayerTeleportEvent event) {
         // Filter chorus fruit
         if (event.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT &&
-                    event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
+                event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
             return;
         }
 

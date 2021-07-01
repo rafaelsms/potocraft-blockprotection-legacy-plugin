@@ -14,10 +14,10 @@ config:
       database_insert_failure: "&4Database failure on protection"
       debug:
         no_block: "&dDebug: &cthere is no block"
-        debug_text: "&dDebug: &a%1$s &f%2$s temporary=%3$b"
+        debug_text: "&dDebug: &a%1$s valid=%4$b date=%2$s temporary=%3$b"
         database_failure: "&dDebug: &4database error"
         debug_list:
-          title: "&dDebug: &6Protected blocks nearby &3%s&6:"
+          title: "&dDebug: &6Protected blocks nearby %s&6:"
           text: "&dDebug: &3%1$s"
           empty: "&dDebug: &6No protected blocks nearby."
     friends:

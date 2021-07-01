@@ -75,7 +75,7 @@ public class BlocksDatabase extends Database {
         }
     }
 
-    private void setLocation(PreparedStatement statement, Location location) throws SQLException {
+    private void setLocation(PreparedStatement statement, Location location, int offset) throws SQLException {
         // Check if location's world is null
         if (!location.isWorldLoaded()) {
             throw new SQLException("Location's world is null");
@@ -83,14 +83,14 @@ public class BlocksDatabase extends Database {
         assert location.getWorld() != null;
 
         // World id
-        statement.setString(1, location.getWorld().getUID().toString());
+        statement.setString(offset + 1, location.getWorld().getUID().toString());
         // Chunk coordinates
-        statement.setInt(2, location.getChunk().getX());
-        statement.setInt(3, location.getChunk().getZ());
+        statement.setInt(offset + 2, location.getChunk().getX());
+        statement.setInt(offset + 3, location.getChunk().getZ());
         // Block coordinates
-        statement.setInt(4, location.getBlockX());
-        statement.setInt(5, location.getBlockY());
-        statement.setInt(6, location.getBlockZ());
+        statement.setInt(offset + 4, location.getBlockX());
+        statement.setInt(offset + 5, location.getBlockY());
+        statement.setInt(offset + 6, location.getBlockZ());
     }
 
     private void setLocation(PreparedStatement statement, Location location, ProtectionRadius radius)
@@ -150,6 +150,7 @@ public class BlocksDatabase extends Database {
                     SELECT
                         BIN_TO_UUID(`blocks`.`owner`),
                         `blocks`.`lastModification`,
+                        (`blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY)) AS `validBlock`,
                         `blocks`.`temporaryBlock`
                     FROM `blockprotection`.`blocks`
                     WHERE
@@ -161,14 +162,16 @@ public class BlocksDatabase extends Database {
                         `blocks`.`z` = ?;
                     """;
             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_OWNER);
-            setLocation(statement, location);
+            statement.setInt(1, daysProtected);
+            setLocation(statement, location, 1);
             ResultSet result = statement.executeQuery();
 
             if (result.next()) {
                 OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(UUID.fromString(result.getString(1)));
                 LocalDateTime dateTime = result.getTimestamp(2).toLocalDateTime();
-                boolean temporaryBlock = result.getBoolean(3);
-                return new ProtectedBlockDate(offlinePlayer, dateTime, temporaryBlock);
+                boolean validBlock = result.getBoolean(3);
+                boolean temporaryBlock = result.getBoolean(4);
+                return new ProtectedBlockDate(offlinePlayer, dateTime, validBlock, temporaryBlock);
             } else {
                 return new ProtectedBlockDate();
             }
@@ -384,7 +387,7 @@ public class BlocksDatabase extends Database {
                     ) ON DUPLICATE KEY UPDATE `owner` = UUID_TO_BIN(?);
                     """;
             PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_BLOCK);
-            setLocation(insertStatement, location);
+            setLocation(insertStatement, location, 0);
             // Owner
             insertStatement.setString(7, owner.toString());
             insertStatement.setString(8, owner.toString());
@@ -540,7 +543,7 @@ public class BlocksDatabase extends Database {
                         `z` = ?;
                     """;
             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BLOCK);
-            setLocation(statement, location);
+            setLocation(statement, location, 0);
             statement.execute();
             return true;
         } catch (SQLException exception) {
