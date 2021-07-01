@@ -38,6 +38,7 @@ config:
       friend_delete:
         command_help: "&6To delete a friend, type &a/delfriend <name of friend>&6"
         friend_deleted: "&4%s &cremoved from your friend list!"
+        deleted_all: "&6Deleted all friends!"
   protection:
     protected_for_days: 7
     minimum_height_to_protect: 36
@@ -411,7 +412,7 @@ config:
         - STONE_BRICK_STAIRS
         - STONE_STAIRS
         - WARPED_STAIRS
-        - DIRT_PATH
+        - GRASS_PATH
         - FARMLAND
         - DEEPSLATE
         - DEEPSLATE_BRICKS

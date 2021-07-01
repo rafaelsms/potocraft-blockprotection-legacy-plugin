@@ -34,7 +34,7 @@ public class DeleteCommand implements CommandExecutor {
                 return true;
             }
 
-            // Add to the database
+            // Remove from the database
             if (plugin.getFriendsDatabase().removeFriend(((Player) sender).getUniqueId(), friend.getUniqueId())) {
                 sender.sendMessage(Lang.FRIENDS_FRIEND_DELETE_SUCCESS.toColoredString().formatted(args[0]));
                 return true;

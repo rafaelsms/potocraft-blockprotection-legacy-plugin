@@ -45,6 +45,8 @@ public enum Lang {
     FRIENDS_FRIEND_DELETE_COMMAND_HELP("config.lang.friends.friend_delete.command_help"),
     FRIENDS_FRIEND_DELETE_SUCCESS("config.lang.friends.friend_delete.friend_deleted"),
 
+    FRIENDS_DELETE_ALL_SUCCESS("config.lang.friends.friend_delete.deleted_all"),
+
     ;
 
     private static BlockProtectionPlugin plugin;

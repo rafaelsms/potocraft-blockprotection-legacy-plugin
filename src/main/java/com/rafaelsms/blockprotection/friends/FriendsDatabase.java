@@ -111,6 +111,24 @@ public class FriendsDatabase extends Database {
             statement.execute();
             return true;
         } catch (SQLException exception) {
+            plugin.getLogger().warning("Failed to delete friend: %d".formatted(exception.getErrorCode()));
+            exception.printStackTrace();
+            return false;
+        }
+    }
+
+    public synchronized boolean removeAllFriends(UUID player) {
+        try (Connection connection = getConnection()) {
+            final String SQL_DELETE_FRIEND = """
+                    DELETE FROM `blockprotection`.`friends`
+                    WHERE
+                        `friends`.`player` = UUID_TO_BIN(?);
+                    """;
+            PreparedStatement statement = connection.prepareStatement(SQL_DELETE_FRIEND);
+            statement.setString(1, player.toString());
+            statement.execute();
+            return true;
+        } catch (SQLException exception) {
             plugin.getLogger().warning("Failed to add friend: %d".formatted(exception.getErrorCode()));
             exception.printStackTrace();
             return false;

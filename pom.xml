@@ -6,7 +6,7 @@
 
     <groupId>com.rafaelsms</groupId>
     <artifactId>BlockProtection</artifactId>
-    <version>2.1</version>
+    <version>2.2</version>
 
     <properties>
         <maven.compiler.source>16</maven.compiler.source>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.17-R0.1-SNAPSHOT</version>
+            <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

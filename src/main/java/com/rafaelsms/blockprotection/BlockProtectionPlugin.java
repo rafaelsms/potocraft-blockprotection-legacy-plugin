@@ -4,6 +4,7 @@ import com.rafaelsms.blockprotection.blocks.BlocksDatabase;
 import com.rafaelsms.blockprotection.blocks.listeners.*;
 import com.rafaelsms.blockprotection.friends.FriendsDatabase;
 import com.rafaelsms.blockprotection.friends.commands.AddCommand;
+import com.rafaelsms.blockprotection.friends.commands.ClearAllCommand;
 import com.rafaelsms.blockprotection.friends.commands.DeleteCommand;
 import com.rafaelsms.blockprotection.friends.commands.ListCommand;
 import com.rafaelsms.blockprotection.util.Database;
@@ -31,6 +32,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
     private ListCommand listCommand;
     private AddCommand addCommand;
     private DeleteCommand deleteCommand;
+    private ClearAllCommand clearAllCommand;
 
     @Override
     public void onEnable() {
@@ -83,11 +85,13 @@ public class BlockProtectionPlugin extends JavaPlugin {
             listCommand = new ListCommand(this);
             addCommand = new AddCommand(this);
             deleteCommand = new DeleteCommand(this);
+            clearAllCommand = new ClearAllCommand(this);
 
             // Set executors for commands
             getServer().getPluginCommand("friends").setExecutor(listCommand);
             getServer().getPluginCommand("addfriend").setExecutor(addCommand);
             getServer().getPluginCommand("delfriend").setExecutor(deleteCommand);
+            getServer().getPluginCommand("clearfriends").setExecutor(clearAllCommand);
 
         } catch (Exception exception) {
             getLogger().severe("Couldn't initialize Block protection: %s".formatted(exception.getMessage()));
@@ -108,6 +112,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
         listCommand = null;
         addCommand = null;
         deleteCommand = null;
+        clearAllCommand = null;
 
         // Delete listeners
         blockBreakListener = null;
@@ -126,6 +131,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
 
         // Erase plugin from Lang and Config
         Lang.setPlugin(null);
+        Config.setPlugin(null);
 
         getLogger().info("BlockProtection disabled!");
     }

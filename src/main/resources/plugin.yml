@@ -1,7 +1,7 @@
 name: BlockProtection
 main: com.rafaelsms.blockprotection.BlockProtectionPlugin
 version: 2.1
-api-version: 1.17
+api-version: 1.16
 author: rafaelsms
 website: rafaelsms.com
 description: Protect your placed blocks and prevent griefers. Allows Faction-like gameplay.
@@ -24,3 +24,7 @@ commands:
     description: Remove a player from your friends list.
     permission: blockprotection.friends.delete
     aliases: [ remfriend, delamizade, remamizade ]
+  clearfriends:
+    description: Remove all players from your friends list.
+    permission: blockprotection.friends.delete
+    aliases: [ limparamizades ]
