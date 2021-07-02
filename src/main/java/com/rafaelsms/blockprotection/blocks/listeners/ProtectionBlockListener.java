@@ -244,9 +244,7 @@ public class ProtectionBlockListener implements Listener {
         // Check if it is protected
         if (result.isProtected()) {
             // Cancel the event
-            event.setCancelled(true);
             event.setUseInteractedBlock(Event.Result.DENY);
-            event.setUseItemInHand(Event.Result.DENY);
             // Send player message
             sendPlayerMessage(player, result);
         }
@@ -285,8 +283,6 @@ public class ProtectionBlockListener implements Listener {
         // Check if it is protected
         if (result.isProtected()) {
             // Cancel the event
-            event.setCancelled(true);
-            event.setUseInteractedBlock(Event.Result.DENY);
             event.setUseItemInHand(Event.Result.DENY);
             // Send player message
             sendPlayerMessage(player, result);
