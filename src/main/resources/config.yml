@@ -40,14 +40,20 @@ config:
         friend_deleted: "&4%s &cremoved from your friend list!"
         deleted_all: "&6Deleted all friends!"
   protection:
-    protected_for_days: 7
+    protected_for_days: 10
     minimum_height_to_protect: 36
+    # Radius to protect against break, place and interact
+    # Break: must be less or equal to half place radius
     protection_break_radius: 7
     protection_place_radius: 14
+    # Interact: must be less than break radius
     protection_interact_radius: 6
+    # Radius to update protection time for old blocks
     protection_update_time_radius: 14
+    # Search for temporary blocks radius
     protection_search_radius: 5
-    protection_block_count: 23
+    # Amount of temporary blocks to update as protected block
+    protection_block_count: 26
     protected_worlds:
       - world
     materials:
