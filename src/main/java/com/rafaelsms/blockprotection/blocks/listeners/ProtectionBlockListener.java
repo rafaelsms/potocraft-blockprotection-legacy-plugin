@@ -5,7 +5,10 @@ import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.Lang;
 import com.rafaelsms.blockprotection.Permission;
 import com.rafaelsms.blockprotection.blocks.events.*;
-import com.rafaelsms.blockprotection.util.*;
+import com.rafaelsms.blockprotection.util.BlockKey;
+import com.rafaelsms.blockprotection.util.ProtectedBlock;
+import com.rafaelsms.blockprotection.util.ProtectedBlockDate;
+import com.rafaelsms.blockprotection.util.ProtectionQuery;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -13,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -21,6 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -245,6 +250,35 @@ public class ProtectionBlockListener implements Listener {
         if (result.isProtected()) {
             // Cancel the event
             event.setUseInteractedBlock(Event.Result.DENY);
+            // Send player message
+            sendPlayerMessage(player, result);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private void onVehicleEnter(VehicleEnterEvent event) {
+        // Ignore non players
+        if (event.getEntered().getType() != EntityType.PLAYER) {
+            return;
+        }
+        Player player = (Player) event.getEntered();
+
+
+        // Ignore admin permission to override block interaction
+        if (player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+            return;
+        }
+
+        // Since this includes a denied material, check permissions
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                event.getEntered().getLocation(), player.getUniqueId(),
+                plugin.getBlocksDatabase().getInteractRadius()
+        );
+
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
             // Send player message
             sendPlayerMessage(player, result);
         }
