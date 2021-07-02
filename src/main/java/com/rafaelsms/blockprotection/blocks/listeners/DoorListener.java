@@ -27,35 +27,19 @@ public class DoorListener implements Listener {
     }
 
     private boolean doorConditions(PlayerInteractEvent event) {
-        // Check if we can interact with the block
-        if (event.useInteractedBlock() == Event.Result.DENY) {
-            return false;
-        }
-
-        // Check if we right clicked
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) {
-            return false;
-        }
-
-        // Check if player is sneaking
-        if (event.getPlayer().isSneaking()) {
-            return false;
-        }
-
-        // Check if clicked block is null
-        Block clickedBlock = event.getClickedBlock();
-        if (clickedBlock == null) {
-            return false;
-        }
-
-        // Check if block is a door
-        if (clickedBlock.getType() == Material.IRON_DOOR || clickedBlock.getType() == Material.IRON_TRAPDOOR) {
-            BlockData blockData = clickedBlock.getBlockData();
-
-            // Check if it is a door
-            return blockData instanceof Door;
-        }
-        return false;
+        return // Ignore denied events
+                event.useInteractedBlock() != Event.Result.DENY &&
+                        // Ignore action not being right click
+                        event.getAction() == Action.RIGHT_CLICK_BLOCK &&
+                        // Ignore player sneaking
+                        !event.getPlayer().isSneaking() &&
+                        // Ignore block being null
+                        event.getClickedBlock() != null &&
+                        // Ignore material other than iron door/trap door
+                        (event.getClickedBlock().getType() == Material.IRON_DOOR ||
+                                event.getClickedBlock().getType() == Material.IRON_TRAPDOOR) &&
+                        // Ignore block not being instance of door
+                        event.getClickedBlock().getBlockData() instanceof Door;
     }
 
     private Sound getSoundFromDoor(Door door) {

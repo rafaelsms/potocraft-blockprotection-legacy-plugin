@@ -16,6 +16,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -33,7 +34,8 @@ public class ProtectionBlockListener implements Listener {
     // Configuration
     private final Set<UUID> protectedWorlds;
 
-    private final Set<Material> deniedInteractionMaterials;
+    private final Set<Material> materialsHandAllowed;
+    private final Set<Material> materialsBlockDenied;
     private final Set<Material> protectedMaterials;
 
     private final int minimumProtectedHeight;
@@ -72,11 +74,16 @@ public class ProtectionBlockListener implements Listener {
         }
         this.protectedWorlds = Collections.unmodifiableSet(protectedWorlds);
 
-        // Check allowed materials
-        this.deniedInteractionMaterials = getMaterialsFromList(
-                Config.PROTECTION_MATERIALS_DENIED_INTERACTION.getStringList());
+        // Check interaction materials
+        this.materialsBlockDenied = getMaterialsFromList(
+                Config.PROTECTION_MATERIALS_BLOCKS_DENIED_INTERACTION.getStringList());
         plugin.getLogger().info(
-                "%d materials that cannot be interacted by anyone".formatted(this.deniedInteractionMaterials.size()));
+                "%d block materials that cannot be interacted with".formatted(this.materialsBlockDenied.size()));
+
+        this.materialsHandAllowed = getMaterialsFromList(
+                Config.PROTECTION_MATERIALS_HAND_ALLOWED_INTERACTION.getStringList());
+        plugin.getLogger().info(
+                "%d hand materials that can be interacted by anyone".formatted(this.materialsHandAllowed.size()));
 
         // Check protected materials
         this.protectedMaterials = getMaterialsFromList(Config.PROTECTION_MATERIALS_PROTECTED.getStringList());
@@ -136,7 +143,8 @@ public class ProtectionBlockListener implements Listener {
         Lang.PROTECTION_NEARBY_BLOCKS.sendActionBar(player);
     }
 
-    @EventHandler(ignoreCancelled = false)
+    @SuppressWarnings("DefaultAnnotationParam")
+    @EventHandler(ignoreCancelled = false, priority = EventPriority.LOWEST)
     private void onDebugInteract(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
@@ -199,10 +207,12 @@ public class ProtectionBlockListener implements Listener {
 
         // Prevent any accidental change to the block
         event.setCancelled(true);
+        event.setUseInteractedBlock(Event.Result.DENY);
+        event.setUseItemInHand(Event.Result.DENY);
     }
 
     @EventHandler(ignoreCancelled = true)
-    private void onAttemptInteract(PlayerInteractEvent event) {
+    private void onAttemptBlockInteract(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
 
@@ -216,8 +226,8 @@ public class ProtectionBlockListener implements Listener {
             return;
         }
 
-        // Ignore denied interactions
-        if (!deniedInteractionMaterials.contains(block.getType())) {
+        // Ignore materials other than what is denied
+        if (!materialsBlockDenied.contains(block.getType())) {
             return;
         }
 
@@ -229,6 +239,47 @@ public class ProtectionBlockListener implements Listener {
         // Since this includes a denied material, check permissions
         ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
                 block.getLocation(), event.getPlayer().getUniqueId(), plugin.getBlocksDatabase().getInteractRadius()
+        );
+
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
+            // Send player message
+            sendPlayerMessage(player, result);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private void onAttemptItemInteract(PlayerInteractEvent event) {
+        Player player = event.getPlayer();
+
+        // Ignore when interacting with blocks
+        if (event.getClickedBlock() != null) {
+            return;
+        }
+
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(event.getPlayer().getLocation().getBlock(), null)) {
+            return;
+        }
+
+        // Ignore allowed interactions
+        if (event.getItem() != null && materialsHandAllowed.contains(event.getItem().getType())) {
+            return;
+        }
+
+        // Ignore admin permission to override block interaction
+        if (player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+            return;
+        }
+
+        // Since this includes a denied material, check permissions
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                event.getPlayer().getLocation(), event.getPlayer().getUniqueId(),
+                plugin.getBlocksDatabase().getInteractRadius()
         );
 
         // Check if it is protected
