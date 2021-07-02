@@ -16,6 +16,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -25,7 +26,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ProtectionBlockListener extends Listener {
+public class ProtectionBlockListener implements Listener {
+
+    private final BlockProtectionPlugin plugin;
 
     // Configuration
     private final Set<UUID> protectedWorlds;
@@ -47,7 +50,7 @@ public class ProtectionBlockListener extends Listener {
      */
 
     public ProtectionBlockListener(BlockProtectionPlugin plugin) {
-        super(plugin);
+        this.plugin = plugin;
 
         // Get configuration
         minimumProtectedHeight = Config.PROTECTION_MINIMUM_HEIGHT.getInt();

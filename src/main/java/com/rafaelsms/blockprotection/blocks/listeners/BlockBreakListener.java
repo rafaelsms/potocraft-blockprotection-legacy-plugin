@@ -21,13 +21,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class BlockBreakListener implements Listener {
-
-    private final BlockProtectionPlugin plugin;
-
-    public BlockBreakListener(BlockProtectionPlugin plugin) {
-        this.plugin = plugin;
-    }
+public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onEntityExplodeBlocks(EntityExplodeEvent event) {
@@ -79,7 +73,7 @@ public class BlockBreakListener implements Listener {
                 new Location(event.getLocation().getWorld(), maxX, maxY, minZ),
 
                 new Location(event.getLocation().getWorld(), maxX, maxY, maxZ)
-                );
+        );
 
         for (Location location : locations) {
             AttemptBreakEvent breakEvent = new AttemptBreakEvent(location.getBlock(), null);

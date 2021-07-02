@@ -4,7 +4,6 @@ import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.Lang;
 import com.rafaelsms.blockprotection.blocks.events.ProtectedBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.ProtectedPlaceEvent;
-import com.rafaelsms.blockprotection.util.Listener;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 

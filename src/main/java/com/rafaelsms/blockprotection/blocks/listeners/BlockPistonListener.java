@@ -2,18 +2,14 @@ package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
-import com.rafaelsms.blockprotection.util.Listener;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 
-public class BlockPistonListener extends Listener {
-
-    public BlockPistonListener(BlockProtectionPlugin plugin) {
-        super(plugin);
-    }
+public record BlockPistonListener(BlockProtectionPlugin plugin) implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onExtendMonitor(BlockPistonExtendEvent event) {
