@@ -560,8 +560,7 @@ public class BlocksDatabase extends Database {
                         `blocks`.`chunkZ` BETWEEN ? AND ? AND
                         `blocks`.`x` BETWEEN ? AND ? AND
                         `blocks`.`y` BETWEEN ? AND ? AND
-                        `blocks`.`z` BETWEEN ? AND ? AND
-                        `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY) AND (
+                        `blocks`.`z` BETWEEN ? AND ? AND (
                             `blocks`.`owner` = UUID_TO_BIN(?) OR
                             UUID_TO_BIN(?) IN (
                                 SELECT
@@ -575,9 +574,8 @@ public class BlocksDatabase extends Database {
             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME);
             setLocation(statement, location, radius);
             // Set time and owner
-            statement.setInt(12, daysProtected);
+            statement.setString(12, owner.toString());
             statement.setString(13, owner.toString());
-            statement.setString(14, owner.toString());
             // Execute
             statement.execute();
         } catch (SQLException exception) {
