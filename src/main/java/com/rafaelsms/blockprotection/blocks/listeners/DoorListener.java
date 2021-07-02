@@ -11,16 +11,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
-public class DoorListener extends Listener {
+public class DoorListener implements Listener {
 
-    private final static int RADIUS_LOCATION = 16;
+    private final static int SOUND_RADIUS_LOCATION = 16;
+
+    private final BlockProtectionPlugin plugin;
 
     public DoorListener(BlockProtectionPlugin plugin) {
-        super(plugin);
+        this.plugin = plugin;
     }
 
     private boolean doorConditions(PlayerInteractEvent event) {
@@ -105,7 +108,7 @@ public class DoorListener extends Listener {
             clickedBlock.setBlockData(door);
 
             // Send door sound to anyone nearby
-            double radiusSquared = RADIUS_LOCATION * RADIUS_LOCATION;
+            double radiusSquared = SOUND_RADIUS_LOCATION * SOUND_RADIUS_LOCATION;
             for (Player player : clickedBlock.getWorld().getPlayers()) {
                 if (player.getLocation().distanceSquared(clickedBlock.getLocation()) <= radiusSquared) {
                     player.playSound(

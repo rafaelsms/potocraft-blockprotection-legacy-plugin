@@ -90,7 +90,6 @@ public class ProtectionBlockListener implements Listener {
                 materials.add(Material.valueOf(material));
             } catch (Exception exception) {
                 plugin.getLogger().info("Couldn't recognize material: %s".formatted(material));
-                exception.printStackTrace();
             }
         }
         return Collections.unmodifiableSet(materials);

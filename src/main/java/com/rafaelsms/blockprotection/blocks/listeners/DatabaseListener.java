@@ -6,11 +6,14 @@ import com.rafaelsms.blockprotection.blocks.events.ProtectedBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.ProtectedPlaceEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 
-public class DatabaseListener extends Listener {
+public class DatabaseListener implements Listener {
+
+    private final BlockProtectionPlugin plugin;
 
     public DatabaseListener(BlockProtectionPlugin plugin) {
-        super(plugin);
+        this.plugin = plugin;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)

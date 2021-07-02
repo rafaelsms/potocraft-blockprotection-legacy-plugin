@@ -100,6 +100,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
             getServer().shutdown();
             return;
         }
+
         getLogger().info("BlockProtection enabled!");
     }
 
