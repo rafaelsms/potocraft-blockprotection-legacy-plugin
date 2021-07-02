@@ -1,8 +1,10 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
+import com.rafaelsms.blockprotection.blocks.BlocksDatabase;
 import com.rafaelsms.blockprotection.blocks.events.AttemptBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
+import com.rafaelsms.blockprotection.util.ProtectionQuery;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,7 +19,6 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,31 +61,16 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
             }
         }
 
-        // Check every corner, stop if any have a blocking block
-        List<Location> locations = Arrays.asList(
-                new Location(event.getLocation().getWorld(), minX, minY, minZ),
+        Location lowerCorner = new Location(event.getLocation().getWorld(), minX, minY, minZ);
+        Location higherCorner = new Location(event.getLocation().getWorld(), maxX, maxY, maxZ);
 
-                new Location(event.getLocation().getWorld(), minX, minY, maxZ),
-                new Location(event.getLocation().getWorld(), minX, maxY, minZ),
-                new Location(event.getLocation().getWorld(), maxX, minY, minZ),
-
-                new Location(event.getLocation().getWorld(), minX, maxY, maxZ),
-                new Location(event.getLocation().getWorld(), maxX, minY, maxZ),
-                new Location(event.getLocation().getWorld(), maxX, maxY, minZ),
-
-                new Location(event.getLocation().getWorld(), maxX, maxY, maxZ)
-        );
-
-        for (Location location : locations) {
-            AttemptBreakEvent breakEvent = new AttemptBreakEvent(location.getBlock(), null);
-            plugin.getServer().getPluginManager().callEvent(breakEvent);
-
-            // Check if event was cancelled
-            if (breakEvent.isCancelled()) {
-                // Remove every block
-                event.blockList().clear();
-                return;
-            }
+        // Find blocking blocks nearby (single SQL query)
+        BlocksDatabase database = plugin.getBlocksDatabase();
+        ProtectionQuery protectionQuery = database.isThereBlockingBlocksNearby(lowerCorner, higherCorner,
+                database.getBreakRadius());
+        // If it is protected, don't destroy any block
+        if (protectionQuery.isProtected()) {
+            event.blockList().clear();
         }
     }
 

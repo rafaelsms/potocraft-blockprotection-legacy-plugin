@@ -13,10 +13,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -363,6 +360,66 @@ public class BlocksDatabase extends Database {
         } catch (SQLException exception) {
             plugin.getLogger().warning(
                     "Failed to select nearby blocks with player: %d".formatted(exception.getErrorCode()));
+            exception.printStackTrace();
+            return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
+        }
+    }
+
+    public ProtectionQuery isThereBlockingBlocksNearby(@NotNull Location lowerCorner,
+                                                       @NotNull Location higherCorner,
+                                                       ProtectionRadius radius) {
+        // Check if world is the same
+        //noinspection ConstantConditions
+        if (!lowerCorner.isWorldLoaded() || !higherCorner.isWorldLoaded() ||
+                !Objects.equals(lowerCorner.getWorld().getUID(), higherCorner.getWorld().getUID())) {
+            plugin.getLogger().warning("Bad world arguments for protection check.");
+            return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
+        }
+
+        try (Connection connection = getConnection()) {
+            final String SQL_QUERY_BLOCKS_USER = """
+                    SELECT
+                        BIN_TO_UUID(`blocks`.`owner`)
+                    FROM `blockprotection`.`blocks`
+                    WHERE
+                        `blocks`.`world` = UUID_TO_BIN(?) AND
+                        `blocks`.`chunkX` BETWEEN ? AND ? AND
+                        `blocks`.`chunkZ` BETWEEN ? AND ? AND
+                        `blocks`.`x` BETWEEN ? AND ? AND
+                        `blocks`.`y` BETWEEN ? AND ? AND
+                        `blocks`.`z` BETWEEN ? AND ? AND
+                        `blocks`.`temporaryBlock` = FALSE AND
+                        `blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY)
+                    LIMIT 1;
+                    """;
+            PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_USER);
+            // Set world
+            statement.setString(1, higherCorner.getWorld().getUID().toString());
+            // Set chunks from lower corner - radius to higher corner + radius
+            statement.setInt(2, lowerCorner.getChunk().getX() - radius.getChunkRadius());
+            statement.setInt(3, higherCorner.getChunk().getX() + radius.getChunkRadius());
+            statement.setInt(4, lowerCorner.getChunk().getZ() - radius.getChunkRadius());
+            statement.setInt(5, higherCorner.getChunk().getZ() + radius.getChunkRadius());
+            // Set coordinates the same way
+            statement.setInt(6, lowerCorner.getBlockX() - radius.getBlockRadius());
+            statement.setInt(7, higherCorner.getBlockX() + radius.getBlockRadius());
+            statement.setInt(8, lowerCorner.getBlockY() - radius.getBlockRadius());
+            statement.setInt(9, higherCorner.getBlockY() + radius.getBlockRadius());
+            statement.setInt(10, lowerCorner.getBlockZ() - radius.getBlockRadius());
+            statement.setInt(11, higherCorner.getBlockZ() + radius.getBlockRadius());
+            // time interval
+            statement.setInt(12, daysProtected);
+
+            ResultSet result = statement.executeQuery();
+            // Return owner or not protected
+            if (result.next()) {
+                return new ProtectionQuery(UUID.fromString(result.getString(1)));
+            } else {
+                return new ProtectionQuery(ProtectionQuery.Result.NOT_PROTECTED);
+            }
+        } catch (SQLException exception) {
+            plugin.getLogger().warning(
+                    "Failed to select nearby blocks from corners: %d".formatted(exception.getErrorCode()));
             exception.printStackTrace();
             return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
         }
