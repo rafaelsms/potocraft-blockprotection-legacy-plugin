@@ -75,20 +75,6 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    private void onSpreadBlock(BlockSpreadEvent event) {
-        // Check just when a block disappears
-        if (!event.getBlock().isEmpty() && !event.getNewState().getType().isSolid()) {
-            AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
-            plugin.getServer().getPluginManager().callEvent(breakEvent);
-
-            // Check if event was cancelled
-            if (breakEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBreakDoor(EntityBreakDoorEvent event) {
         AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
         plugin.getServer().getPluginManager().callEvent(breakEvent);

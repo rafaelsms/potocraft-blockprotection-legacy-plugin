@@ -96,17 +96,6 @@ public class BlockPlaceListener implements Listener {
             event.getSource().setType(Material.AIR);
             event.setCancelled(true);
         }
-
-        // Check just when a block appears
-        if (event.getBlock().isEmpty() && event.getNewState().getType().isSolid()) {
-            AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), null);
-            plugin.getServer().getPluginManager().callEvent(placeEvent);
-
-            // Check if event was cancelled
-            if (placeEvent.isCancelled()) {
-                event.setCancelled(true);
-            }
-        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
