@@ -23,6 +23,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
@@ -411,6 +412,28 @@ public class ProtectionBlockListener implements Listener {
             sendPlayerMessage(event.getPlayer(), result);
         }
         // If there isn't, allow break
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private void onAttemptBedEnter(PlayerBedEnterEvent event) {
+        Block block = event.getBed();
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(block, event.getPlayer())) {
+            return;
+        }
+
+        // Check if there are protected blocks nearby
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                block.getLocation(), event.getPlayer().getLocation(), plugin.getBlocksDatabase().getPlaceRadius()
+        );
+
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+            // Send player message
+            sendPlayerMessage(event.getPlayer(), result);
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
