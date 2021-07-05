@@ -6,7 +6,9 @@ import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Openable;
 import org.bukkit.block.data.type.Door;
+import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -39,10 +41,11 @@ public class DoorListener implements Listener {
                         (event.getClickedBlock().getType() == Material.IRON_DOOR ||
                                 event.getClickedBlock().getType() == Material.IRON_TRAPDOOR) &&
                         // Ignore block not being instance of door
-                        event.getClickedBlock().getBlockData() instanceof Door;
+                        (event.getClickedBlock().getBlockData() instanceof Door ||
+                                event.getClickedBlock().getBlockData() instanceof TrapDoor);
     }
 
-    private Sound getSoundFromDoor(Door door) {
+    private Sound getSoundFromDoor(Openable door) {
         if (door.getMaterial() == Material.IRON_TRAPDOOR) {
             if (door.isOpen()) {
                 return Sound.BLOCK_IRON_TRAPDOOR_OPEN;
@@ -87,9 +90,13 @@ public class DoorListener implements Listener {
 
             // Source: https://github.com/JEFF-Media-GbR/Doors-Reloaded/blob/master/src/main/java/de/jeff_media/doorsreloaded/listeners/DoorListener.java#L54
             // Update the door to set its new state
-            Door door = (Door) blockData;
-            door.setOpen(!door.isOpen());
-            clickedBlock.setBlockData(door);
+            if (blockData instanceof Door door) {
+                door.setOpen(!door.isOpen());
+                clickedBlock.setBlockData(door);
+            } else if (blockData instanceof TrapDoor trapDoor) {
+                trapDoor.setOpen(!trapDoor.isOpen());
+                clickedBlock.setBlockData(trapDoor);
+            }
 
             // Send door sound to anyone nearby
             double radiusSquared = SOUND_RADIUS_LOCATION * SOUND_RADIUS_LOCATION;
@@ -97,7 +104,7 @@ public class DoorListener implements Listener {
                 if (player.getLocation().distanceSquared(clickedBlock.getLocation()) <= radiusSquared) {
                     player.playSound(
                             clickedBlock.getLocation(),
-                            getSoundFromDoor(door),
+                            getSoundFromDoor((Openable) blockData),
                             SoundCategory.PLAYERS,
                             1.0f,
                             1.0f
