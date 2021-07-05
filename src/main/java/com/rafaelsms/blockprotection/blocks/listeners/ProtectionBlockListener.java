@@ -387,6 +387,28 @@ public class ProtectionBlockListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    private void onBedEnter(PlayerBedEnterEvent event) {
+        Block block = event.getBed();
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(block, event.getPlayer())) {
+            return;
+        }
+
+        // Check if there are protected blocks nearby
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                block.getLocation(), event.getPlayer().getUniqueId(), plugin.getBlocksDatabase().getPlaceRadius()
+        );
+
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+            // Send player message
+            sendPlayerMessage(event.getPlayer(), result);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
     private void onAttemptBreak(AttemptBreakEvent event) {
         Block block = event.getBlock();
 
@@ -412,28 +434,6 @@ public class ProtectionBlockListener implements Listener {
             sendPlayerMessage(event.getPlayer(), result);
         }
         // If there isn't, allow break
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    private void onAttemptBedEnter(PlayerBedEnterEvent event) {
-        Block block = event.getBed();
-        // Avoid any check when not in a protected environment
-        if (shouldIgnore(block, event.getPlayer())) {
-            return;
-        }
-
-        // Check if there are protected blocks nearby
-        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-                block.getLocation(), event.getPlayer().getLocation(), plugin.getBlocksDatabase().getPlaceRadius()
-        );
-
-        // Check if it is protected
-        if (result.isProtected()) {
-            // Cancel the event
-            event.setCancelled(true);
-            // Send player message
-            sendPlayerMessage(event.getPlayer(), result);
-        }
     }
 
     @EventHandler(ignoreCancelled = true)
