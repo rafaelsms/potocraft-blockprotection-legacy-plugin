@@ -257,35 +257,6 @@ public class ProtectionBlockListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    private void onVehicleEnter(VehicleEnterEvent event) {
-        // Ignore non players
-        if (event.getEntered().getType() != EntityType.PLAYER) {
-            return;
-        }
-        Player player = (Player) event.getEntered();
-
-
-        // Ignore admin permission to override block interaction
-        if (player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
-            return;
-        }
-
-        // Since this includes a denied material, check permissions
-        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-                event.getEntered().getLocation(), player.getUniqueId(),
-                plugin.getBlocksDatabase().getInteractRadius()
-        );
-
-        // Check if it is protected
-        if (result.isProtected()) {
-            // Cancel the event
-            event.setCancelled(true);
-            // Send player message
-            sendPlayerMessage(player, result);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true)
     private void onAttemptItemInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
 
@@ -319,6 +290,35 @@ public class ProtectionBlockListener implements Listener {
         if (result.isProtected()) {
             // Cancel the event
             event.setUseItemInHand(Event.Result.DENY);
+            // Send player message
+            sendPlayerMessage(player, result);
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private void onVehicleEnter(VehicleEnterEvent event) {
+        // Ignore non players
+        if (event.getEntered().getType() != EntityType.PLAYER) {
+            return;
+        }
+        Player player = (Player) event.getEntered();
+
+
+        // Ignore admin permission to override block interaction
+        if (player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
+            return;
+        }
+
+        // Since this includes a denied material, check permissions
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                event.getEntered().getLocation(), player.getUniqueId(),
+                plugin.getBlocksDatabase().getInteractRadius()
+        );
+
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
             // Send player message
             sendPlayerMessage(player, result);
         }
