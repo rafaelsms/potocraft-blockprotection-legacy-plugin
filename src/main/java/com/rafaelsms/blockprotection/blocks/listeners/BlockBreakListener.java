@@ -27,47 +27,16 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onEntityExplodeBlocks(EntityExplodeEvent event) {
         List<Location> blockListLocations = event.blockList().stream()
-                .map(Block::getLocation)
-                .collect(Collectors.toList());
-
-        int maxX = event.getLocation().getBlockX();
-        int minX = event.getLocation().getBlockX();
-        int maxY = event.getLocation().getBlockY();
-        int minY = event.getLocation().getBlockY();
-        int maxZ = event.getLocation().getBlockZ();
-        int minZ = event.getLocation().getBlockZ();
-
-        for (Location location : blockListLocations) {
-            // Check X
-            int blockX = location.getBlockX();
-            if (blockX > maxX) {
-                maxX = blockX;
-            } else if (blockX < minX) {
-                minX = blockX;
-            }
-            // Check Y
-            int blockY = location.getBlockY();
-            if (blockY > maxY) {
-                maxY = blockY;
-            } else if (blockY < minY) {
-                minY = blockY;
-            }
-            // Check Z
-            int blockZ = location.getBlockZ();
-            if (blockZ > maxZ) {
-                maxZ = blockZ;
-            } else if (blockZ < minZ) {
-                minZ = blockZ;
-            }
-        }
-
-        Location lowerCorner = new Location(event.getLocation().getWorld(), minX, minY, minZ);
-        Location higherCorner = new Location(event.getLocation().getWorld(), maxX, maxY, maxZ);
+                                                    .map(Block::getLocation)
+                                                    .collect(Collectors.toList());
 
         // Find blocking blocks nearby (single SQL query)
         BlocksDatabase database = plugin.getBlocksDatabase();
-        ProtectionQuery protectionQuery = database.isThereBlockingBlocksNearby(lowerCorner, higherCorner,
-                database.getBreakRadius());
+        ProtectionQuery protectionQuery = database.isThereBlockingBlocksNearby(
+                event.getLocation().getWorld(),
+                blockListLocations,
+                database.getBreakRadius()
+        );
         // If it is protected, don't destroy any block
         if (protectionQuery.isProtected()) {
             event.blockList().clear();
@@ -122,10 +91,10 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
 
         // Check if entity is a falling block or a primed TNT
         if (event.getEntityType() == EntityType.FALLING_BLOCK ||
-                event.getEntityType() == EntityType.PRIMED_TNT ||
-                event.getEntityType() == EntityType.VILLAGER ||
-                event.getEntityType() == EntityType.BEE ||
-                event.getEntityType() == EntityType.TURTLE) {
+                    event.getEntityType() == EntityType.PRIMED_TNT ||
+                    event.getEntityType() == EntityType.VILLAGER ||
+                    event.getEntityType() == EntityType.BEE ||
+                    event.getEntityType() == EntityType.TURTLE) {
             // allow these entities
             return;
         }

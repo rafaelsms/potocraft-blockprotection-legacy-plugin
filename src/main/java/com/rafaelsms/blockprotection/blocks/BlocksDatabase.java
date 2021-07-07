@@ -5,6 +5,7 @@ import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.util.*;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -365,13 +366,59 @@ public class BlocksDatabase extends Database {
         }
     }
 
+    public ProtectionQuery isThereBlockingBlocksNearby(World world, Collection<Location> blockLocations,
+                                                       ProtectionRadius radius) {
+        Integer maxX = null;
+        Integer minX = null;
+        Integer maxY = null;
+        Integer minY = null;
+        Integer maxZ = null;
+        Integer minZ = null;
+
+        for (Location location : blockLocations) {
+            // Check X
+            int blockX = location.getBlockX();
+            if (maxX == null || blockX > maxX) {
+                maxX = blockX;
+            }
+            if (minX == null || blockX < minX) {
+                minX = blockX;
+            }
+            // Check Y
+            int blockY = location.getBlockY();
+            if (maxY == null || blockY > maxY) {
+                maxY = blockY;
+            }
+            if (minY == null || blockY < minY) {
+                minY = blockY;
+            }
+            // Check Z
+            int blockZ = location.getBlockZ();
+            if (maxZ == null || blockZ > maxZ) {
+                maxZ = blockZ;
+            }
+            if (minZ == null || blockZ < minZ) {
+                minZ = blockZ;
+            }
+        }
+
+        // Check if we have at least one block to look up
+        if (minX == null) {
+            // Fail (wrong arguments)
+            return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
+        }
+        Location lowerCorner = new Location(world, minX, minY, minZ);
+        Location higherCorner = new Location(world, maxX, maxY, maxZ);
+        return isThereBlockingBlocksNearby(higherCorner, lowerCorner, radius);
+    }
+
     public ProtectionQuery isThereBlockingBlocksNearby(@NotNull Location lowerCorner,
                                                        @NotNull Location higherCorner,
                                                        ProtectionRadius radius) {
         // Check if world is the same
         //noinspection ConstantConditions
         if (!lowerCorner.isWorldLoaded() || !higherCorner.isWorldLoaded() ||
-                !Objects.equals(lowerCorner.getWorld().getUID(), higherCorner.getWorld().getUID())) {
+                    !Objects.equals(lowerCorner.getWorld().getUID(), higherCorner.getWorld().getUID())) {
             plugin.getLogger().warning("Bad world arguments for protection check.");
             return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
         }
