@@ -13,6 +13,8 @@ public enum Lang {
     // Block place/break/interaction
     PROTECTION_NEARBY_BLOCKS("config.lang.protection.nearby_blocks"),
     PROTECTION_NEARBY_BLOCKS_OWNED("config.lang.protection.nearby_blocks_owned_by"),
+    // Portal creation
+    PROTECTION_PORTAL_CREATE_UNPROTECTED("config.lang.protection.warn_protection_portal_created"),
     // Block place
     PROTECTION_UNDER_MINIMUM_HEIGHT("config.lang.protection.block_under_minimum_height"),
     PROTECTION_UNPROTECTED_WORLD("config.lang.protection.unprotected_world"),

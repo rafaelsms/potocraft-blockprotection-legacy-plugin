@@ -21,9 +21,9 @@ public class DatabaseListener implements Listener {
         boolean inserted = plugin.getBlocksDatabase().insertBlock(
                 event.getBlock().getLocation(),
                 event.getPlayer().getUniqueId(),
-                plugin.getBlocksDatabase().getUpdateRadius(),
-                plugin.getBlocksDatabase().getSearchRadius(),
-                plugin.getBlocksDatabase().getNeededCountToProtect());
+                plugin.getBlocksDatabase().getUpdateTimeRadius(),
+                plugin.getBlocksDatabase().getSearchRadiusForTemporary(),
+                plugin.getBlocksDatabase().getNeededNearbyCountToProtect());
         if (!inserted) {
             Lang.PROTECTION_DATABASE_FAILURE.sendActionBar(event.getPlayer());
         }

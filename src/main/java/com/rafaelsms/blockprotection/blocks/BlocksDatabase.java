@@ -23,10 +23,13 @@ public class BlocksDatabase extends Database {
     private final ProtectionRadius placeRadius;
     private final ProtectionRadius breakRadius;
     private final ProtectionRadius interactRadius;
-    private final ProtectionRadius updateRadius;
 
-    private final ProtectionRadius searchRadius;
-    private final int neededCountToProtect;
+    private final ProtectionRadius updateTimeRadius;
+
+    private final ProtectionRadius deletePortalRadius;
+
+    private final ProtectionRadius searchRadiusForTemporary;
+    private final int neededNearbyCountToProtect;
 
     private final int daysProtected;
 
@@ -37,10 +40,13 @@ public class BlocksDatabase extends Database {
         breakRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_BREAK_RADIUS.getInt());
         placeRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_PLACE_RADIUS.getInt());
         interactRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_INTERACT_RADIUS.getInt());
-        updateRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_UPDATE_RADIUS.getInt());
 
-        searchRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_SEARCH_RADIUS.getInt());
-        neededCountToProtect = Config.PROTECTION_PROTECTION_BLOCK_COUNT.getInt();
+        updateTimeRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_UPDATE_TIME_RADIUS.getInt());
+
+        deletePortalRadius = new ProtectionRadius(breakRadius.getBlockRadius() + 1);
+
+        searchRadiusForTemporary = new ProtectionRadius(Config.PROTECTION_PROTECTION_SEARCH_TEMPORARY_RADIUS.getInt());
+        neededNearbyCountToProtect = Config.PROTECTION_PROTECTION_BLOCK_COUNT_TO_PROTECT.getInt();
 
         daysProtected = Config.PROTECTION_DAYS_PROTECTED.getInt();
 
@@ -130,16 +136,20 @@ public class BlocksDatabase extends Database {
         return interactRadius;
     }
 
-    public ProtectionRadius getUpdateRadius() {
-        return updateRadius;
+    public ProtectionRadius getUpdateTimeRadius() {
+        return updateTimeRadius;
     }
 
-    public ProtectionRadius getSearchRadius() {
-        return searchRadius;
+    public ProtectionRadius getPortalDeleteRadius() {
+        return deletePortalRadius;
     }
 
-    public int getNeededCountToProtect() {
-        return neededCountToProtect;
+    public ProtectionRadius getSearchRadiusForTemporary() {
+        return searchRadiusForTemporary;
+    }
+
+    public int getNeededNearbyCountToProtect() {
+        return neededNearbyCountToProtect;
     }
 
     public ProtectedBlockDate getBlockData(@NotNull Location location) {
@@ -646,6 +656,30 @@ public class BlocksDatabase extends Database {
                     """;
             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BLOCK);
             setLocation(statement, location, 0);
+            statement.execute();
+            return true;
+        } catch (SQLException exception) {
+            plugin.getLogger().severe("Failed to delete block: %d".formatted(exception.getErrorCode()));
+            exception.printStackTrace();
+            return false;
+        }
+    }
+
+    @SuppressWarnings("UnusedReturnValue")
+    public boolean deleteNearbyBlocks(Location location, ProtectionRadius radius) {
+        try (Connection connection = getConnection()) {
+            final String SQL_DELETE_RADIUS = """
+                    DELETE IGNORE FROM `blockprotection`.`blocks`
+                    WHERE
+                        `world` = UUID_TO_BIN(?) AND
+                        `chunkX` BETWEEN ? AND ? AND
+                        `chunkZ` BETWEEN ? AND ? AND
+                        `x` BETWEEN ? AND ? AND
+                        `y` BETWEEN ? AND ? AND
+                        `z` BETWEEN ? AND ?;
+                    """;
+            PreparedStatement statement = connection.prepareStatement(SQL_DELETE_RADIUS);
+            setLocation(statement, location, radius);
             statement.execute();
             return true;
         } catch (SQLException exception) {

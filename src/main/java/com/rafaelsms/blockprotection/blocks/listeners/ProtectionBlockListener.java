@@ -27,6 +27,7 @@ import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.world.PortalCreateEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
@@ -207,7 +208,7 @@ public class ProtectionBlockListener implements Listener {
             player.sendMessage(Lang.PROTECTION_DEBUG_LIST_TITLE.toColoredString().formatted(blockString));
             for (ProtectedBlock protectedBlock : protectedBlocks) {
                 player.sendMessage(Lang.PROTECTION_DEBUG_LIST_TEXT.toColoredString()
-                        .formatted(protectedBlock.toString(plugin)));
+                                           .formatted(protectedBlock.toString(plugin)));
             }
         }
 
@@ -324,6 +325,30 @@ public class ProtectionBlockListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    private void onPortalTeleport(PlayerTeleportEvent event) {
+        // Ignore when not portal related
+        if (event.getCause() != PlayerTeleportEvent.TeleportCause.NETHER_PORTAL &&
+                    event.getCause() != PlayerTeleportEvent.TeleportCause.END_PORTAL) {
+            return;
+        }
+
+        // Delete protected blocks nearby (small radius)
+        plugin.getBlocksDatabase().deleteNearbyBlocks(event.getTo(),
+                plugin.getBlocksDatabase().getPortalDeleteRadius());
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    private void onPortalCreate(PortalCreateEvent event) {
+        // Ignore non players
+        if (event.getEntity() == null || event.getEntity().getType() != EntityType.PLAYER) {
+            return;
+        }
+
+        // Warn player about portal protection
+        Lang.PROTECTION_NEARBY_BLOCKS.sendMessage(event.getEntity());
+    }
+
     @EventHandler(ignoreCancelled = true)
     private void onOpenInventoryHolder(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
@@ -364,7 +389,7 @@ public class ProtectionBlockListener implements Listener {
     private void onTeleport(PlayerTeleportEvent event) {
         // Filter chorus fruit
         if (event.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT &&
-                event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
+                    event.getCause() != PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
             return;
         }
 
