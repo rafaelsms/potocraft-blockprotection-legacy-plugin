@@ -619,13 +619,18 @@ public class BlocksDatabase extends Database {
                         `blocks`.`x` BETWEEN ? AND ? AND
                         `blocks`.`y` BETWEEN ? AND ? AND
                         `blocks`.`z` BETWEEN ? AND ? AND (
-                            `blocks`.`owner` = UUID_TO_BIN(?) OR
-                            UUID_TO_BIN(?) IN (
-                                SELECT
-                                    `friends`.`friend`
-                                FROM `blockprotection`.`friends`
-                                WHERE
-                                    `friends`.`player` = `blocks`.`owner`
+                            (
+                                `blocks`.`owner` = UUID_TO_BIN(?) OR
+                                UUID_TO_BIN(?) IN (
+                                    SELECT
+                                        `friends`.`friend`
+                                    FROM `blockprotection`.`friends`
+                                    WHERE
+                                        `friends`.`player` = `blocks`.`owner`
+                                )
+                            ) OR (
+                                `blocks`.`lastModification` < (NOW() - INTERVAL ? DAY) AND
+                                `blocks`.`temporaryBlock` = FALSE
                             )
                         );
                     """;
@@ -634,9 +639,11 @@ public class BlocksDatabase extends Database {
             statement.setString(1, owner.toString());
             // Set location
             setLocation(statement, location, radius, 1);
-            // Set time and owner
+            // Set owner
             statement.setString(13, owner.toString());
             statement.setString(14, owner.toString());
+            // Set time
+            statement.setInt(15, daysProtected);
             // Execute
             statement.execute();
         } catch (SQLException exception) {
