@@ -97,7 +97,7 @@ public class BlocksDatabase extends Database {
         statement.setInt(offset + 6, location.getBlockZ());
     }
 
-    private void setLocation(PreparedStatement statement, Location location, ProtectionRadius radius)
+    private void setLocation(PreparedStatement statement, Location location, ProtectionRadius radius, int offset)
             throws SQLException {
         // Check if location's world is null
         if (!location.isWorldLoaded()) {
@@ -106,22 +106,22 @@ public class BlocksDatabase extends Database {
         assert location.getWorld() != null;
 
         // world's UUID
-        statement.setString(1, location.getWorld().getUID().toString());
+        statement.setString(offset + 1, location.getWorld().getUID().toString());
         // chunkX
-        statement.setInt(2, location.getChunk().getX() - radius.getChunkRadius());
-        statement.setInt(3, location.getChunk().getX() + radius.getChunkRadius());
+        statement.setInt(offset + 2, location.getChunk().getX() - radius.getChunkRadius());
+        statement.setInt(offset + 3, location.getChunk().getX() + radius.getChunkRadius());
         // chunkZ
-        statement.setInt(4, location.getChunk().getZ() - radius.getChunkRadius());
-        statement.setInt(5, location.getChunk().getZ() + radius.getChunkRadius());
+        statement.setInt(offset + 4, location.getChunk().getZ() - radius.getChunkRadius());
+        statement.setInt(offset + 5, location.getChunk().getZ() + radius.getChunkRadius());
         // x
-        statement.setInt(6, location.getBlockX() - radius.getBlockRadius());
-        statement.setInt(7, location.getBlockX() + radius.getBlockRadius());
+        statement.setInt(offset + 6, location.getBlockX() - radius.getBlockRadius());
+        statement.setInt(offset + 7, location.getBlockX() + radius.getBlockRadius());
         // y
-        statement.setInt(8, location.getBlockY() - radius.getBlockRadius());
-        statement.setInt(9, location.getBlockY() + radius.getBlockRadius());
+        statement.setInt(offset + 8, location.getBlockY() - radius.getBlockRadius());
+        statement.setInt(offset + 9, location.getBlockY() + radius.getBlockRadius());
         // z
-        statement.setInt(10, location.getBlockZ() - radius.getBlockRadius());
-        statement.setInt(11, location.getBlockZ() + radius.getBlockRadius());
+        statement.setInt(offset + 10, location.getBlockZ() - radius.getBlockRadius());
+        statement.setInt(offset + 11, location.getBlockZ() + radius.getBlockRadius());
     }
 
     public ProtectionRadius getBreakRadius() {
@@ -305,7 +305,7 @@ public class BlocksDatabase extends Database {
                     LIMIT 1;
                     """;
             PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_NO_USER);
-            setLocation(statement, location, radius);
+            setLocation(statement, location, radius, 0);
             statement.setInt(12, daysProtected);
 
             ResultSet result = statement.executeQuery();
@@ -354,7 +354,7 @@ public class BlocksDatabase extends Database {
                     LIMIT 1;
                     """;
             PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_USER);
-            setLocation(statement, location, radius);
+            setLocation(statement, location, radius, 0);
             // time interval
             statement.setInt(12, daysProtected);
             // player
@@ -515,8 +515,8 @@ public class BlocksDatabase extends Database {
 
             // Check if we should update the time of protection of nearby blocks
             if (updateRadius != null && updateRadius.getBlockRadius() > 0) {
-                // Asynchronously update near blocks to new date
-                CompletableFuture.runAsync(() -> updateNearbyBlocksTime(location, owner, updateRadius));
+                // Asynchronously update near blocks to new date and owner
+                CompletableFuture.runAsync(() -> updateNearbyBlocksTimeOwner(location, owner, updateRadius));
             }
 
             return true;
@@ -553,7 +553,7 @@ public class BlocksDatabase extends Database {
                         );
                     """;
             PreparedStatement countStatement = connection.prepareStatement(SQL_COUNT_NEARBY_BLOCKS);
-            setLocation(countStatement, location, searchRadius);
+            setLocation(countStatement, location, searchRadius, 0);
             // Owner
             countStatement.setString(12, owner.toString());
             countStatement.setString(13, owner.toString());
@@ -594,7 +594,7 @@ public class BlocksDatabase extends Database {
                         );
                     """;
             PreparedStatement updateStatement = connection.prepareStatement(SQL_UPDATE_NEARBY_BLOCKS);
-            setLocation(updateStatement, location, searchRadius);
+            setLocation(updateStatement, location, searchRadius, 0);
             // Owner
             updateStatement.setString(12, owner.toString());
             updateStatement.setString(13, owner.toString());
@@ -605,12 +605,13 @@ public class BlocksDatabase extends Database {
         }
     }
 
-    private void updateNearbyBlocksTime(Location location, UUID owner, ProtectionRadius radius) {
+    private void updateNearbyBlocksTimeOwner(Location location, UUID owner, ProtectionRadius radius) {
         try (Connection connection = getConnection()) {
             final String SQL_UPDATE_TIME = """
                     UPDATE `blockprotection`.`blocks`
                     SET
-                        `blocks`.`lastModification` = NOW()
+                        `blocks`.`lastModification` = NOW(),
+                        `blocks`.`owner` = UUID_TO_BIN(?)
                     WHERE
                         `blocks`.`world` = UUID_TO_BIN(?) AND
                         `blocks`.`chunkX` BETWEEN ? AND ? AND
@@ -629,10 +630,13 @@ public class BlocksDatabase extends Database {
                         );
                     """;
             PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME);
-            setLocation(statement, location, radius);
+            // Set owner
+            statement.setString(1, owner.toString());
+            // Set location
+            setLocation(statement, location, radius, 1);
             // Set time and owner
-            statement.setString(12, owner.toString());
             statement.setString(13, owner.toString());
+            statement.setString(14, owner.toString());
             // Execute
             statement.execute();
         } catch (SQLException exception) {
@@ -679,7 +683,7 @@ public class BlocksDatabase extends Database {
                         `z` BETWEEN ? AND ?;
                     """;
             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_RADIUS);
-            setLocation(statement, location, radius);
+            setLocation(statement, location, radius, 0);
             statement.execute();
             return true;
         } catch (SQLException exception) {
