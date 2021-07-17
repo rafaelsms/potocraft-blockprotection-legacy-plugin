@@ -185,7 +185,7 @@ public class BlocksDatabase extends Database {
             }
 
         } catch (SQLException exception) {
-            plugin.getLogger().warning("Single block query failed: %d".formatted(exception.getErrorCode()));
+            plugin.getLogger().warning("Single block query failed: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
             return null;
         }
@@ -281,7 +281,7 @@ public class BlocksDatabase extends Database {
             // Return unmodifiable list
             return Collections.unmodifiableList(protectedBlocks);
         } catch (SQLException exception) {
-            plugin.getLogger().warning("Failed to select nearby blocks: %d".formatted(exception.getErrorCode()));
+            plugin.getLogger().warning("Failed to select nearby blocks: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
             return null;
         }
@@ -316,7 +316,7 @@ public class BlocksDatabase extends Database {
                 return new ProtectionQuery(ProtectionQuery.Result.NOT_PROTECTED);
             }
         } catch (SQLException exception) {
-            plugin.getLogger().warning("Failed to select nearby blocks: %d".formatted(exception.getErrorCode()));
+            plugin.getLogger().warning("Failed to select nearby blocks: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
             return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
         }
@@ -370,7 +370,7 @@ public class BlocksDatabase extends Database {
             }
         } catch (SQLException exception) {
             plugin.getLogger().warning(
-                    "Failed to select nearby blocks with player: %d".formatted(exception.getErrorCode()));
+                    "Failed to select nearby blocks with player: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
             return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
         }
@@ -476,7 +476,7 @@ public class BlocksDatabase extends Database {
             }
         } catch (SQLException exception) {
             plugin.getLogger().warning(
-                    "Failed to select nearby blocks from corners: %d".formatted(exception.getErrorCode()));
+                    "Failed to select nearby blocks from corners: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
             return new ProtectionQuery(ProtectionQuery.Result.DATABASE_FAILURE);
         }
@@ -521,7 +521,7 @@ public class BlocksDatabase extends Database {
 
             return true;
         } catch (SQLException exception) {
-            plugin.getLogger().severe("Failed to insert block on database: %d".formatted(exception.getErrorCode()));
+            plugin.getLogger().severe("Failed to insert block on database: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
             return false;
         }
@@ -600,7 +600,7 @@ public class BlocksDatabase extends Database {
             updateStatement.setString(13, owner.toString());
             updateStatement.executeUpdate();
         } catch (SQLException exception) {
-            plugin.getLogger().warning("Failed to protect nearby blocks: %d".formatted(exception.getErrorCode()));
+            plugin.getLogger().warning("Failed to protect nearby blocks: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
         }
     }
@@ -647,7 +647,7 @@ public class BlocksDatabase extends Database {
             // Execute
             statement.execute();
         } catch (SQLException exception) {
-            plugin.getLogger().warning("Failed to update blocks: %d".formatted(exception.getErrorCode()));
+            plugin.getLogger().warning("Failed to update blocks: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
         }
     }
@@ -670,7 +670,7 @@ public class BlocksDatabase extends Database {
             statement.execute();
             return true;
         } catch (SQLException exception) {
-            plugin.getLogger().severe("Failed to delete block: %d".formatted(exception.getErrorCode()));
+            plugin.getLogger().severe("Failed to delete block: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
             return false;
         }
@@ -694,7 +694,7 @@ public class BlocksDatabase extends Database {
             statement.execute();
             return true;
         } catch (SQLException exception) {
-            plugin.getLogger().severe("Failed to delete block: %d".formatted(exception.getErrorCode()));
+            plugin.getLogger().severe("Failed to delete block: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
             return false;
         }

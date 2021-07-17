@@ -50,6 +50,8 @@ public class BlockProtectionPlugin extends JavaPlugin {
             config.setJdbcUrl(Config.DATABASE_URL.getString());
             config.setUsername(Config.DATABASE_USER.getString());
             config.setPassword(Config.DATABASE_PASSWORD.getString());
+            config.setConnectionTimeout(Config.DATABASE_CONNECTION_TIMEOUT.getInt());
+            config.setMaximumPoolSize(Config.DATABASE_POOL_SIZE.getInt());
 
             // Additional configurations
             config.addDataSourceProperty("rewriteBatchedStatements", "true");
@@ -58,7 +60,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-            config.setMaximumPoolSize(Config.DATABASE_POOL_SIZE.getInt());
             dataSource = new HikariDataSource(config);
             Database.setDataSource(dataSource);
 

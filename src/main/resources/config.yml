@@ -3,7 +3,8 @@ config:
     url: jdbc:mysql://localhost/database?verifyServerCertificate=false&useSSL=true
     user: user
     password: password
-    pool_size: 20
+    pool_size: 12
+    connection_timeout_ms: 3000
   lang:
     protection:
       nearby_blocks: "&cProtected block nearby"

@@ -9,6 +9,7 @@ public enum Config {
     DATABASE_USER("config.database.user"),
     DATABASE_PASSWORD("config.database.password"),
     DATABASE_POOL_SIZE("config.database.pool_size"),
+    DATABASE_CONNECTION_TIMEOUT("config.database.connection_timeout_ms"),
 
     // Protection
     PROTECTION_DAYS_PROTECTED("config.protection.protected_for_days"),
