@@ -129,6 +129,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
         blocksDatabase = null;
 
         Database.setDataSource(null);
+        dataSource.close();
         dataSource = null;
 
         // Erase plugin from Lang and Config
