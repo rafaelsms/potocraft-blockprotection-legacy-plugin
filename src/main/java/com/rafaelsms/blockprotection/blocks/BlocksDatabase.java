@@ -2,6 +2,7 @@ package com.rafaelsms.blockprotection.blocks;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.Config;
+import com.rafaelsms.blockprotection.Lang;
 import com.rafaelsms.blockprotection.util.*;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
@@ -15,6 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class BlocksDatabase extends Database {
@@ -23,12 +25,11 @@ public class BlocksDatabase extends Database {
     private final ProtectionRadius breakRadius;
     private final ProtectionRadius interactRadius;
 
-    private final ProtectionRadius updateTimeRadius;
+    private final ProtectionRadius placeUpdateTimeRadius;
+    private final ProtectionRadius placeSearchRadiusForTemporary;
+    private final int placeNeededNearbyCountToProtect;
 
     private final ProtectionRadius deletePortalRadius;
-
-    private final ProtectionRadius searchRadiusForTemporary;
-    private final int neededNearbyCountToProtect;
 
     private final int daysProtected;
 
@@ -40,12 +41,12 @@ public class BlocksDatabase extends Database {
         placeRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_PLACE_RADIUS.getInt());
         interactRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_INTERACT_RADIUS.getInt());
 
-        updateTimeRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_UPDATE_TIME_RADIUS.getInt());
+        placeUpdateTimeRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_PLACE_UPDATE_TIME_RADIUS.getInt());
+        placeSearchRadiusForTemporary = new ProtectionRadius(
+                Config.PROTECTION_PROTECTION_PLACE_SEARCH_TEMPORARY_RADIUS.getInt());
+        placeNeededNearbyCountToProtect = Config.PROTECTION_PROTECTION_PLACE_BLOCK_COUNT_TO_PROTECT.getInt();
 
         deletePortalRadius = new ProtectionRadius(breakRadius.getBlockRadius() + 1);
-
-        searchRadiusForTemporary = new ProtectionRadius(Config.PROTECTION_PROTECTION_SEARCH_TEMPORARY_RADIUS.getInt());
-        neededNearbyCountToProtect = Config.PROTECTION_PROTECTION_BLOCK_COUNT_TO_PROTECT.getInt();
 
         daysProtected = Config.PROTECTION_DAYS_PROTECTED.getInt();
 
@@ -135,20 +136,8 @@ public class BlocksDatabase extends Database {
         return interactRadius;
     }
 
-    public ProtectionRadius getUpdateTimeRadius() {
-        return updateTimeRadius;
-    }
-
     public ProtectionRadius getPortalDeleteRadius() {
         return deletePortalRadius;
-    }
-
-    public ProtectionRadius getSearchRadiusForTemporary() {
-        return searchRadiusForTemporary;
-    }
-
-    public int getNeededNearbyCountToProtect() {
-        return neededNearbyCountToProtect;
     }
 
     public ProtectedBlockDate getBlockData(@NotNull Location location) {
@@ -481,10 +470,27 @@ public class BlocksDatabase extends Database {
         }
     }
 
-    public boolean insertBlock(Location location, UUID owner, ProtectionRadius updateRadius,
-                               ProtectionRadius searchRadius, int blockCountToProtect) {
-        try {
-            Connection connection = getConnection();
+    public void insertBlockAsync(Location location, UUID owner, CompletableFuture<Void> future) {
+        insertBlockAsync(
+                location, owner,
+                placeUpdateTimeRadius, placeSearchRadiusForTemporary, placeNeededNearbyCountToProtect,
+                future
+        );
+    }
+
+    public void insertBlockAsync(Location location, UUID owner, ProtectionRadius updateRadius,
+                                 ProtectionRadius searchRadius, int blockCountToProtect,
+                                 CompletableFuture<Void> future) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(
+                plugin,
+                () -> insertBlock(location, owner, updateRadius, searchRadius, blockCountToProtect, future)
+        );
+    }
+
+    public void insertBlock(Location location, UUID owner, ProtectionRadius updateRadius,
+                            ProtectionRadius searchRadius, int blockCountToProtect,
+                            CompletableFuture<Void> future) {
+        try (Connection connection = getConnection()) {
 
             final String SQL_INSERT_BLOCK = """
                     INSERT INTO `blockprotection`.`blocks` (
@@ -509,39 +515,22 @@ public class BlocksDatabase extends Database {
             insertStatement.setString(8, owner.toString());
             insertStatement.execute();
 
-            boolean shouldSearch = searchRadius != null && searchRadius.getBlockRadius() > 0;
-            boolean shouldUpdate = updateRadius != null && updateRadius.getBlockRadius() > 0;
-
-            if (shouldSearch || shouldUpdate) {
-                plugin.getServer().getScheduler().runTaskAsynchronously(
-                        plugin,
-                        () -> {
-                            try {
-                                // Search and update temporary blocks nearby
-                                if (shouldSearch) {
-                                    updateNearbyTemporaryBlocks(connection,
-                                            location, owner, searchRadius, blockCountToProtect);
-                                }
-                                // Search and update all blocks for time
-                                if (shouldUpdate) {
-                                    updateNearbyBlocksTimeOwner(connection, location, owner, updateRadius);
-                                }
-
-                                connection.close();
-                            } catch (SQLException exception) {
-                                plugin.getLogger().warning("Failed to update blocks asynchronously: %s"
-                                                                   .formatted(exception.getMessage()));
-                                exception.printStackTrace();
-                            }
-                        }
-                );
+            // Search and update temporary blocks nearby
+            if (searchRadius != null && searchRadius.getBlockRadius() > 0) {
+                updateNearbyTemporaryBlocks(connection,
+                        location, owner, searchRadius, blockCountToProtect);
             }
 
-            return true;
+            // Search and update all blocks for time
+            if (updateRadius != null && updateRadius.getBlockRadius() > 0) {
+                updateNearbyBlocksTimeAndOwner(connection, location, owner, updateRadius);
+            }
+
+            future.complete(null);
         } catch (SQLException exception) {
             plugin.getLogger().severe("Failed to insert block on database: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
-            return false;
+            future.completeExceptionally(new Exception(Lang.PROTECTION_DATABASE_FAILURE.toString()));
         }
     }
 
@@ -622,8 +611,8 @@ public class BlocksDatabase extends Database {
         updateStatement.executeUpdate();
     }
 
-    private void updateNearbyBlocksTimeOwner(Connection connection,
-                                             Location location, UUID owner, ProtectionRadius radius)
+    private void updateNearbyBlocksTimeAndOwner(Connection connection,
+                                                Location location, UUID owner, ProtectionRadius radius)
             throws SQLException {
         final String SQL_UPDATE_TIME = """
                 UPDATE `blockprotection`.`blocks`
@@ -667,8 +656,14 @@ public class BlocksDatabase extends Database {
         statement.execute();
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    public boolean deleteBlock(Location location) {
+    public void deleteBlockAsync(Location location, CompletableFuture<Void> future) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(
+                plugin,
+                () -> deleteBlock(location, future)
+        );
+    }
+
+    public void deleteBlock(Location location, CompletableFuture<Void> future) {
         try (Connection connection = getConnection()) {
             final String SQL_DELETE_BLOCK = """
                     DELETE IGNORE FROM `blockprotection`.`blocks`
@@ -683,16 +678,55 @@ public class BlocksDatabase extends Database {
             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BLOCK);
             setLocation(statement, location, 0);
             statement.execute();
-            return true;
+            future.complete(null);
         } catch (SQLException exception) {
             plugin.getLogger().severe("Failed to delete block: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
-            return false;
+            future.completeExceptionally(new Exception(Lang.PROTECTION_DATABASE_FAILURE.toString()));
         }
     }
 
-    @SuppressWarnings("UnusedReturnValue")
-    public boolean deleteNearbyBlocks(Location location, ProtectionRadius radius) {
+    public void deleteBlocksAsync(List<Location> locations, CompletableFuture<Void> future) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(
+                plugin,
+                () -> deleteBlocks(locations, future)
+        );
+    }
+
+    public void deleteBlocks(List<Location> locations, CompletableFuture<Void> future) {
+        try (Connection connection = getConnection()) {
+            final String SQL_DELETE_BLOCK = """
+                    DELETE IGNORE FROM `blockprotection`.`blocks`
+                    WHERE
+                        `world` = UUID_TO_BIN(?) AND
+                        `chunkX` = ? AND
+                        `chunkZ` = ? AND
+                        `x` = ? AND
+                        `y` = ? AND
+                        `z` = ?;
+                    """;
+            PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BLOCK);
+            for (Location location : locations) {
+                setLocation(statement, location, 0);
+                statement.addBatch();
+            }
+            statement.executeBatch();
+            future.complete(null);
+        } catch (SQLException exception) {
+            plugin.getLogger().severe("Failed to delete block: %s".formatted(exception.getMessage()));
+            exception.printStackTrace();
+            future.completeExceptionally(new Exception(Lang.PROTECTION_DATABASE_FAILURE.toString()));
+        }
+    }
+
+    public void deleteNearbyBlocksAsync(Location location, ProtectionRadius radius, CompletableFuture<Void> future) {
+        plugin.getServer().getScheduler().runTaskAsynchronously(
+                plugin,
+                () -> deleteNearbyBlocks(location, radius, future)
+        );
+    }
+
+    public void deleteNearbyBlocks(Location location, ProtectionRadius radius, CompletableFuture<Void> future) {
         try (Connection connection = getConnection()) {
             final String SQL_DELETE_RADIUS = """
                     DELETE IGNORE FROM `blockprotection`.`blocks`
@@ -707,11 +741,11 @@ public class BlocksDatabase extends Database {
             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_RADIUS);
             setLocation(statement, location, radius, 0);
             statement.execute();
-            return true;
+            future.complete(null);
         } catch (SQLException exception) {
             plugin.getLogger().severe("Failed to delete block: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
-            return false;
+            future.completeExceptionally(new Exception(Lang.PROTECTION_DATABASE_FAILURE.toString()));
         }
     }
 

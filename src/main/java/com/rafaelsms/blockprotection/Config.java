@@ -14,12 +14,15 @@ public enum Config {
     // Protection
     PROTECTION_DAYS_PROTECTED("config.protection.protected_for_days"),
     PROTECTION_MINIMUM_HEIGHT("config.protection.minimum_height_to_protect"),
+
     PROTECTION_PROTECTION_BREAK_RADIUS("config.protection.protection_break_radius"),
     PROTECTION_PROTECTION_PLACE_RADIUS("config.protection.protection_place_radius"),
     PROTECTION_PROTECTION_INTERACT_RADIUS("config.protection.protection_interact_radius"),
-    PROTECTION_PROTECTION_UPDATE_TIME_RADIUS("config.protection.protection_update_time_radius"),
-    PROTECTION_PROTECTION_SEARCH_TEMPORARY_RADIUS("config.protection.protection_search_temporary_radius"),
-    PROTECTION_PROTECTION_BLOCK_COUNT_TO_PROTECT("config.protection.protection_block_count_to_protect"),
+
+    PROTECTION_PROTECTION_PLACE_UPDATE_TIME_RADIUS("config.protection.protection_place_update_time_radius"),
+    PROTECTION_PROTECTION_PLACE_SEARCH_TEMPORARY_RADIUS("config.protection.protection_place_search_temporary_radius"),
+    PROTECTION_PROTECTION_PLACE_BLOCK_COUNT_TO_PROTECT("config.protection.protection_place_block_count_to_protect"),
+
     PROTECTION_PROTECTED_WORLDS("config.protection.protected_worlds"),
     // Materials
     PROTECTION_DEBUG_ITEM("config.protection.materials.debug_item"),

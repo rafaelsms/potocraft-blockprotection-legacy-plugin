@@ -8,24 +8,18 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class PlaceEvent extends BlockEvent implements PlayerUUIDEvent {
+public class PlaceEvent extends BlockEvent implements NotNullPlayerEvent {
 
     private static final HandlerList handlers = new HandlerList();
 
     private final @NotNull Player player;
 
-    /**
-     * A block place event that may or may not be protected.
-     * (This is a shortcut for every block place or change caused by players or entities).
-     *
-     * @param player user placing the block
-     * @param block  block being placed
-     */
     public PlaceEvent(@NotNull Block block, @NotNull Player player) {
         super(block);
         this.player = player;
     }
 
+    @Override
     public @NotNull Player getPlayer() {
         return player;
     }

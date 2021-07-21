@@ -9,12 +9,6 @@ public class BreakEvent extends BlockEvent {
 
     private static final HandlerList handlers = new HandlerList();
 
-    /**
-     * A block place event that may or may not be protected.
-     * (This is a shortcut for every block break or change caused by players or entities).
-     *
-     * @param block block being broken
-     */
     public BreakEvent(@NotNull Block block) {
         super(block);
     }

@@ -3,29 +3,34 @@ package com.rafaelsms.blockprotection.blocks.events;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
+import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.block.BlockEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.util.*;
 
-public class AttemptBreakEvent extends BlockEvent implements Cancellable, NullablePlayerEvent {
+public class AttemptMultiPlaceEvent extends Event implements Cancellable, NullablePlayerEvent {
 
     private static final HandlerList handlers = new HandlerList();
 
+    private final @NotNull List<Block> blocks;
     private final @Nullable Player player;
 
     private boolean cancelled = false;
 
-    public AttemptBreakEvent(@NotNull Block block) {
-        super(block);
-        player = null;
+    public AttemptMultiPlaceEvent(@NotNull Collection<Block> blocks) {
+        this.blocks = List.copyOf(blocks);
+        this.player = null;
     }
 
-    public AttemptBreakEvent(@NotNull Block block, @Nullable Player player) {
-        super(block);
+    public AttemptMultiPlaceEvent(@NotNull Collection<Block> blocks, @Nullable Player player) {
+        this.blocks = List.copyOf(blocks);
         this.player = player;
+    }
+
+    public @NotNull List<Block> getBlocks() {
+        return blocks;
     }
 
     @Override

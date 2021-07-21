@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class AttemptPlaceEvent extends BlockEvent implements Cancellable, PlayerUUIDEvent {
+public class AttemptPlaceEvent extends BlockEvent implements Cancellable, NullablePlayerEvent {
 
     private static final HandlerList handlers = new HandlerList();
 
@@ -18,18 +18,12 @@ public class AttemptPlaceEvent extends BlockEvent implements Cancellable, Player
 
     private boolean cancelled = false;
 
-    /**
-     * Event that represents a block break event.
-     * (This is a shortcut for every block place or change caused by players or entities).
-     *
-     * @param player user that attempted to place the block
-     * @param block  block being placed
-     */
     public AttemptPlaceEvent(@NotNull Block block, @Nullable Player player) {
         super(block);
         this.player = player;
     }
 
+    @Override
     public @Nullable Player getPlayer() {
         return player;
     }

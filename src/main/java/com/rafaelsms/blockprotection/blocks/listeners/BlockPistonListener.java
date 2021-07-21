@@ -1,7 +1,7 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
-import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -9,21 +9,25 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+
 public record BlockPistonListener(BlockProtectionPlugin plugin) implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onExtendMonitor(BlockPistonExtendEvent event) {
-        for (Block block : event.getBlocks()) {
-            BreakEvent breakEvent = new BreakEvent(block);
-            plugin.getServer().getPluginManager().callEvent(breakEvent);
-        }
+        List<Location> locations = event.getBlocks().stream()
+                                           .map(Block::getLocation)
+                                           .collect(Collectors.toList());
+        plugin.getBlocksDatabase().deleteBlocksAsync(locations, new CompletableFuture<>());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onRetractMonitor(BlockPistonRetractEvent event) {
-        for (Block block : event.getBlocks()) {
-            BreakEvent breakEvent = new BreakEvent(block);
-            plugin.getServer().getPluginManager().callEvent(breakEvent);
-        }
+        List<Location> locations = event.getBlocks().stream()
+                                           .map(Block::getLocation)
+                                           .collect(Collectors.toList());
+        plugin.getBlocksDatabase().deleteBlocksAsync(locations, new CompletableFuture<>());
     }
 }

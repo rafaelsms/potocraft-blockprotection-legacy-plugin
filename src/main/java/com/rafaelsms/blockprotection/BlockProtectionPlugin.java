@@ -25,7 +25,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
     private BlockBreakListener blockBreakListener;
     private BlockPistonListener blockPistonListener;
     private BlockPlaceListener blockPlaceListener;
-    private DatabaseListener databaseListener;
     private ProtectionBlockListener protectionBlockListener;
     private DoorListener doorListener;
 
@@ -52,11 +51,12 @@ public class BlockProtectionPlugin extends JavaPlugin {
             config.setPassword(Config.DATABASE_PASSWORD.getString());
             config.setConnectionTimeout(Config.DATABASE_CONNECTION_TIMEOUT.getInt());
             config.setMaximumPoolSize(Config.DATABASE_POOL_SIZE.getInt());
+            config.setMinimumIdle(Config.DATABASE_POOL_SIZE.getInt() / 2);
 
             // Additional configurations
-            config.addDataSourceProperty("rewriteBatchedStatements", "true");
-            config.addDataSourceProperty("cacheServerConfiguration", "true");
-            config.addDataSourceProperty("useServerPrepStmts", "true");
+//            config.addDataSourceProperty("rewriteBatchedStatements", "true");
+//            config.addDataSourceProperty("cacheServerConfiguration", "true");
+//            config.addDataSourceProperty("useServerPrepStmts", "true");
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -70,7 +70,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
             blockBreakListener = new BlockBreakListener(this);
             blockPistonListener = new BlockPistonListener(this);
             blockPlaceListener = new BlockPlaceListener(this);
-            databaseListener = new DatabaseListener(this);
             protectionBlockListener = new ProtectionBlockListener(this);
             doorListener = new DoorListener(this);
 
@@ -78,7 +77,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
             getServer().getPluginManager().registerEvents(blockBreakListener, this);
             getServer().getPluginManager().registerEvents(blockPistonListener, this);
             getServer().getPluginManager().registerEvents(blockPlaceListener, this);
-            getServer().getPluginManager().registerEvents(databaseListener, this);
             getServer().getPluginManager().registerEvents(protectionBlockListener, this);
             getServer().getPluginManager().registerEvents(doorListener, this);
 
@@ -109,6 +107,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
     public void onDisable() {
         // Unregister listeners
         HandlerList.unregisterAll(this);
+        getServer().getScheduler().cancelTasks(this);
 
         // Stop our command executors
         listCommand = null;
@@ -120,7 +119,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
         blockBreakListener = null;
         blockPistonListener = null;
         blockPlaceListener = null;
-        databaseListener = null;
         protectionBlockListener = null;
         doorListener = null;
 

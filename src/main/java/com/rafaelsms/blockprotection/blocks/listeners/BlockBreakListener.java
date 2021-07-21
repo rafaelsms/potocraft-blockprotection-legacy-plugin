@@ -1,51 +1,40 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
-import com.rafaelsms.blockprotection.blocks.BlocksDatabase;
 import com.rafaelsms.blockprotection.blocks.events.AttemptBreakEvent;
+import com.rafaelsms.blockprotection.blocks.events.AttemptMultiBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
-import com.rafaelsms.blockprotection.util.ProtectionQuery;
-import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockBurnEvent;
+import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onEntityExplodeBlocks(EntityExplodeEvent event) {
-        List<Location> blockListLocations = event.blockList().stream()
-                                                    .map(Block::getLocation)
-                                                    .collect(Collectors.toList());
+        AttemptMultiBreakEvent breakEvent = new AttemptMultiBreakEvent(event.blockList());
+        plugin.getServer().getPluginManager().callEvent(breakEvent);
 
-        // Find blocking blocks nearby (single SQL query)
-        BlocksDatabase database = plugin.getBlocksDatabase();
-        ProtectionQuery protectionQuery = database.isThereBlockingBlocksNearby(
-                event.getLocation().getWorld(),
-                blockListLocations,
-                database.getBreakRadius()
-        );
-        // If it is protected, don't destroy any block
-        if (protectionQuery.isProtected()) {
-            event.blockList().clear();
+        // Check if event was cancelled
+        if (breakEvent.isCancelled()) {
+            event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBreakDoor(EntityBreakDoorEvent event) {
-        AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
+        AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
 
         // Check if event was cancelled
@@ -56,19 +45,13 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBurn(BlockBurnEvent event) {
-        AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), null);
+        AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
 
         // Check if event was cancelled
         if (breakEvent.isCancelled()) {
             event.setCancelled(true);
         }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    private void onFadeMonitor(BlockFadeEvent event) {
-        BreakEvent breakEvent = new BreakEvent(event.getBlock());
-        plugin.getServer().getPluginManager().callEvent(breakEvent);
     }
 
     @SuppressWarnings("DuplicatedCode")
@@ -152,6 +135,12 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onBreakMonitor(BlockBreakEvent event) {
+        BreakEvent breakEvent = new BreakEvent(event.getBlock());
+        plugin.getServer().getPluginManager().callEvent(breakEvent);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    private void onFadeMonitor(BlockFadeEvent event) {
         BreakEvent breakEvent = new BreakEvent(event.getBlock());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
     }

@@ -1,9 +1,11 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
+import com.rafaelsms.blockprotection.blocks.events.AttemptMultiPlaceEvent;
 import com.rafaelsms.blockprotection.blocks.events.AttemptPlaceEvent;
 import com.rafaelsms.blockprotection.blocks.events.PlaceEvent;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -18,13 +20,10 @@ import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.world.PortalCreateEvent;
 
-public class BlockPlaceListener implements Listener {
+import java.util.List;
+import java.util.stream.Collectors;
 
-    private final BlockProtectionPlugin plugin;
-
-    public BlockPlaceListener(BlockProtectionPlugin plugin) {
-        this.plugin = plugin;
-    }
+public record BlockPlaceListener(BlockProtectionPlugin plugin) implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onPortalCreation(PortalCreateEvent event) {
@@ -33,16 +32,16 @@ public class BlockPlaceListener implements Listener {
             return;
         }
 
-        for (BlockState block : event.getBlocks()) {
-            AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(block.getBlock(), null);
-            plugin.getServer().getPluginManager().callEvent(placeEvent);
+        List<Block> blocks = event.getBlocks().stream()
+                                     .map(BlockState::getBlock)
+                                     .collect(Collectors.toList());
 
-            // Check if event was cancelled
-            if (placeEvent.isCancelled()) {
-                event.setCancelled(true);
-                // We can return on any block
-                return;
-            }
+        AttemptMultiPlaceEvent multiPlaceEvent = new AttemptMultiPlaceEvent(blocks);
+        plugin.getServer().getPluginManager().callEvent(multiPlaceEvent);
+
+        // Check if event was cancelled
+        if (multiPlaceEvent.isCancelled()) {
+            event.setCancelled(true);
         }
     }
 

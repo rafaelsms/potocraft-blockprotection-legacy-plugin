@@ -1,10 +1,11 @@
 config:
   database:
-    url: jdbc:mysql://localhost/database?verifyServerCertificate=false&useSSL=true
+    url: 'jdbc:mysql://127.0.0.1:3306/blockprotection?useSSL=false'
     user: user
     password: password
-    pool_size: 12
-    connection_timeout_ms: 3000
+    pool_size: 20
+    connection_timeout_ms: 500
+
   lang:
     protection:
       nearby_blocks: "&cProtected block nearby"
@@ -41,25 +42,33 @@ config:
         command_help: "&6To delete a friend, type &a/delfriend <name of friend>&6"
         friend_deleted: "&4%s &cremoved from your friend list!"
         deleted_all: "&6Deleted all friends!"
+
   protection:
+
     protected_for_days: 10
     minimum_height_to_protect: 36
+
     # Radius to protect against break, place and interact
     # Break: must be less or equal to half place radius
     protection_break_radius: 7
     protection_place_radius: 14
     # Interact: must be less than break radius
     protection_interact_radius: 6
-    # Radius to update protection time for old blocks
-    protection_update_time_radius: 14
-    # Search for temporary blocks radius
-    protection_search_temporary_radius: 5
-    # Amount of temporary blocks to update nearby blocks as protected blocks
-    protection_block_count_to_protect: 26
+
+    # Radius to update protection time for old blocks on place
+    protection_place_update_time_radius: 14
+    # Search for temporary blocks radius on place
+    protection_place_search_temporary_radius: 5
+    # Amount of temporary blocks to update nearby blocks as protected blocks when placing
+    protection_place_block_count_to_protect: 26
+
     protected_worlds:
       - world
+
     materials:
+
       debug_item: STICK
+
       denied_interaction_block:
         - IRON_DOOR
         - HEAVY_WEIGHTED_PRESSURE_PLATE
@@ -95,6 +104,7 @@ config:
         - GREEN_BED
         - RED_BED
         - BLACK_BED
+
       allowed_interaction_hand:
         - SWEET_BERRIES
         - APPLE
@@ -137,6 +147,7 @@ config:
         - POTION
         - LINGERING_POTION
         - SPLASH_POTION
+
       protected_materials:
         - ACACIA_LOG
         - ACACIA_PLANKS

@@ -33,6 +33,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class ProtectionBlockListener implements Listener {
 
@@ -334,8 +335,8 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Delete protected blocks nearby (small radius)
-        plugin.getBlocksDatabase().deleteNearbyBlocks(event.getTo(),
-                plugin.getBlocksDatabase().getPortalDeleteRadius());
+        plugin.getBlocksDatabase().deleteNearbyBlocksAsync(
+                event.getTo(), plugin.getBlocksDatabase().getPortalDeleteRadius(), new CompletableFuture<>());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -346,7 +347,7 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Warn player about portal protection
-        Lang.PROTECTION_NEARBY_BLOCKS.sendMessage(event.getEntity());
+        Lang.PROTECTION_PORTAL_CREATE_UNPROTECTED.sendMessage(event.getEntity());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -491,9 +492,8 @@ public class ProtectionBlockListener implements Listener {
             return;
         }
 
-        // Call protected event
-        ProtectedBreakEvent protectedBreakEvent = new ProtectedBreakEvent(event.getBlock());
-        plugin.getServer().getPluginManager().callEvent(protectedBreakEvent);
+        // Asynchronously remove from database
+        plugin.getBlocksDatabase().deleteBlockAsync(event.getBlock().getLocation(), new CompletableFuture<>());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -512,9 +512,9 @@ public class ProtectionBlockListener implements Listener {
             return;
         }
 
-        // Call protected event
-        ProtectedPlaceEvent protectedPlaceEvent = new ProtectedPlaceEvent(block, player);
-        plugin.getServer().getPluginManager().callEvent(protectedPlaceEvent);
+        // Asynchronously insert into the database
+        plugin.getBlocksDatabase().insertBlockAsync(
+                event.getBlock().getLocation(), event.getPlayerUUID(), new CompletableFuture<>());
     }
 
 }
