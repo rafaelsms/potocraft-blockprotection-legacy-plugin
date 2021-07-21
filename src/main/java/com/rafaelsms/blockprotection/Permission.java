@@ -2,6 +2,7 @@ package com.rafaelsms.blockprotection;
 
 public enum Permission {
 
+    PROTECT("blockprotection.protect"),
     DEBUG("blockprotection.debug"),
     PROTECTION_OVERRIDE("blockprotection.protection_override"),
     ;

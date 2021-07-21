@@ -1,14 +1,16 @@
 name: BlockProtection
 main: com.rafaelsms.blockprotection.BlockProtectionPlugin
-version: 2.1
-api-version: 1.16
+version: 2.2
+api-version: 1.17
 author: rafaelsms
 website: rafaelsms.com
-description: Protect your placed blocks and prevent griefers. Allows Faction-like gameplay.
+description: Protect your placed blocks and prevent griefers.
 load: POSTWORLD
 permissions:
   blockprotection.debug:
     description: Allows you to check debug information of the blocks through an item.
+  blockprotection.protect:
+    description: Allows you to protect your blocks.
   blockprotection.protection_override:
     description: Allows you to break any block.
 commands:

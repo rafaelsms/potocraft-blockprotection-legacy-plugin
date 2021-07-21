@@ -505,6 +505,11 @@ public class ProtectionBlockListener implements Listener {
             return;
         }
 
+        // Check if player has permission to protect
+        if (!player.hasPermission(Permission.PROTECT.toString())) {
+            return;
+        }
+
         // Check place material
         if (!protectedMaterials.contains(block.getType())) {
             // Show to player that this block can't be protected

@@ -54,9 +54,6 @@ public class BlockProtectionPlugin extends JavaPlugin {
             config.setMinimumIdle(Config.DATABASE_POOL_SIZE.getInt() / 2);
 
             // Additional configurations
-//            config.addDataSourceProperty("rewriteBatchedStatements", "true");
-//            config.addDataSourceProperty("cacheServerConfiguration", "true");
-//            config.addDataSourceProperty("useServerPrepStmts", "true");
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");

@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-@SuppressWarnings("FieldCanBeLocal")
 public class BlocksDatabase extends Database {
 
     private final ProtectionRadius placeRadius;
