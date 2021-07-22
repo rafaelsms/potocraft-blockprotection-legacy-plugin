@@ -3,8 +3,9 @@ config:
     url: 'jdbc:mysql://127.0.0.1:3306/blockprotection?useSSL=false'
     user: user
     password: password
-    pool_size: 20
+    pool_size: 14
     connection_timeout_ms: 500
+    leak_detection_timeout_ms: 3000
 
   lang:
     protection:

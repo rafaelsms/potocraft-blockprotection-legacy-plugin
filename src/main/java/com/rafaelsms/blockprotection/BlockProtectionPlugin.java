@@ -52,6 +52,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
             config.setConnectionTimeout(Config.DATABASE_CONNECTION_TIMEOUT.getInt());
             config.setMaximumPoolSize(Config.DATABASE_POOL_SIZE.getInt());
             config.setMinimumIdle(Config.DATABASE_POOL_SIZE.getInt());
+            config.setLeakDetectionThreshold(Config.DATABASE_LEAK_DETECTION_TIMEOUT.getInt());
 
             // Additional configurations
             config.addDataSourceProperty("rewriteBatchedStatements", "true");
