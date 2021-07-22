@@ -25,7 +25,7 @@ public class FriendsDatabase extends Database {
     private synchronized void setupSchema() throws SQLException {
         try (Connection connection = getConnection()) {
             final String SQL_CREATE_TABLE = """
-                    CREATE TABLE IF NOT EXISTS `blockprotection`.`friends` (
+                    CREATE TABLE IF NOT EXISTS `friends` (
                       `player` BINARY(16) NOT NULL,
                       `friend` BINARY(16) NOT NULL,
                       PRIMARY KEY (`player`, `friend`),
@@ -47,7 +47,7 @@ public class FriendsDatabase extends Database {
             final String SQL_SELECT_FRIENDS = """
                     SELECT
                         BIN_TO_UUID(`friends`.`friend`)
-                    FROM `blockprotection`.`friends`
+                    FROM `friends`
                     WHERE
                         `friends`.`player` = UUID_TO_BIN(?);
                     """;
@@ -76,7 +76,7 @@ public class FriendsDatabase extends Database {
     public synchronized boolean addFriend(UUID player, UUID friend) {
         try (Connection connection = getConnection()) {
             final String SQL_INSERT_FRIEND = """
-                    INSERT INTO `blockprotection`.`friends`
+                    INSERT INTO `friends`
                        (`player`, `friend`)
                     VALUES
                        (UUID_TO_BIN(?), UUID_TO_BIN(?));
@@ -98,7 +98,7 @@ public class FriendsDatabase extends Database {
     public synchronized boolean removeFriend(UUID player, UUID friend) {
         try (Connection connection = getConnection()) {
             final String SQL_DELETE_FRIEND = """
-                    DELETE FROM `blockprotection`.`friends`
+                    DELETE FROM `friends`
                     WHERE
                         `friends`.`player` = UUID_TO_BIN(?) AND
                         `friends`.`friend` = UUID_TO_BIN(?);
@@ -120,7 +120,7 @@ public class FriendsDatabase extends Database {
     public synchronized boolean removeAllFriends(UUID player) {
         try (Connection connection = getConnection()) {
             final String SQL_DELETE_FRIEND = """
-                    DELETE FROM `blockprotection`.`friends`
+                    DELETE FROM `friends`
                     WHERE
                         `friends`.`player` = UUID_TO_BIN(?);
                     """;
