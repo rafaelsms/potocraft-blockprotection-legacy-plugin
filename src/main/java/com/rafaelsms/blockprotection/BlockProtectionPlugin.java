@@ -51,9 +51,12 @@ public class BlockProtectionPlugin extends JavaPlugin {
             config.setPassword(Config.DATABASE_PASSWORD.getString());
             config.setConnectionTimeout(Config.DATABASE_CONNECTION_TIMEOUT.getInt());
             config.setMaximumPoolSize(Config.DATABASE_POOL_SIZE.getInt());
-            config.setMinimumIdle(Config.DATABASE_POOL_SIZE.getInt() / 2);
+            config.setMinimumIdle(Config.DATABASE_POOL_SIZE.getInt());
 
             // Additional configurations
+            config.addDataSourceProperty("rewriteBatchedStatements", "true");
+            config.addDataSourceProperty("cacheServerConfiguration", "true");
+            config.addDataSourceProperty("useServerPrepStmts", "true");
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -68,7 +71,7 @@ public class BlockProtectionPlugin extends JavaPlugin {
             blockPistonListener = new BlockPistonListener(this);
             blockPlaceListener = new BlockPlaceListener(this);
             protectionBlockListener = new ProtectionBlockListener(this);
-            doorListener = new DoorListener(this);
+            doorListener = new DoorListener();
 
             // Register listeners
             getServer().getPluginManager().registerEvents(blockBreakListener, this);

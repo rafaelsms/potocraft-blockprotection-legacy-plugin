@@ -1,6 +1,5 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
-import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
@@ -21,12 +20,6 @@ import org.bukkit.inventory.EquipmentSlot;
 public class DoorListener implements Listener {
 
     private final static int SOUND_RADIUS_LOCATION = 16;
-
-    private final BlockProtectionPlugin plugin;
-
-    public DoorListener(BlockProtectionPlugin plugin) {
-        this.plugin = plugin;
-    }
 
     private boolean doorConditions(PlayerInteractEvent event) {
         return // Ignore denied events
