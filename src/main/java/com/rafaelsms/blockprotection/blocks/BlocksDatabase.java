@@ -147,7 +147,7 @@ public class BlocksDatabase extends Database {
                         `blocks`.`lastModification`,
                         (`blocks`.`lastModification` >= (NOW() - INTERVAL ? DAY)) AS `validBlock`,
                         `blocks`.`temporaryBlock`
-                    FROM `blockprotection`.`blocks`
+                    FROM `blocks`
                     WHERE
                         `blocks`.`world` = UUID_TO_BIN(?) AND
                         `blocks`.`chunkX` = ? AND
@@ -187,12 +187,12 @@ public class BlocksDatabase extends Database {
                         MAX(`blocks`.`x`),
                         MAX(`blocks`.`y`),
                         MAX(`blocks`.`z`)
-                    FROM `blockprotection`.`blocks`
+                    FROM `blocks`
                     WHERE
                         `blocks`.`owner` IN (
                             SELECT DISTINCT
                                 `blocks`.`owner`
-                            FROM `blockprotection`.`blocks`
+                            FROM `blocks`
                             WHERE
                                 `blocks`.`world` = UUID_TO_BIN(?) AND
                                 `blocks`.`chunkX` BETWEEN ? AND ? AND
@@ -279,7 +279,7 @@ public class BlocksDatabase extends Database {
             final String SQL_QUERY_BLOCKS_NO_USER = """
                     SELECT
                         BIN_TO_UUID(`blocks`.`owner`)
-                    FROM `blockprotection`.`blocks`
+                    FROM `blocks`
                     WHERE
                         `blocks`.`world` = UUID_TO_BIN(?) AND
                         `blocks`.`chunkX` BETWEEN ? AND ? AND
@@ -320,7 +320,7 @@ public class BlocksDatabase extends Database {
             final String SQL_QUERY_BLOCKS_USER = """
                     SELECT
                         BIN_TO_UUID(`blocks`.`owner`)
-                    FROM `blockprotection`.`blocks`
+                    FROM `blocks`
                     WHERE
                         `blocks`.`world` = UUID_TO_BIN(?) AND
                         `blocks`.`chunkX` BETWEEN ? AND ? AND
@@ -334,7 +334,7 @@ public class BlocksDatabase extends Database {
                         UUID_TO_BIN(?) NOT IN (
                             SELECT
                                 `friends`.`friend`
-                            FROM `blockprotection`.`friends`
+                            FROM `friends`
                             WHERE
                                 `friends`.`player` = `blocks`.`owner`
                         )
@@ -424,7 +424,7 @@ public class BlocksDatabase extends Database {
             final String SQL_QUERY_BLOCKS_USER = """
                     SELECT
                         BIN_TO_UUID(`blocks`.`owner`)
-                    FROM `blockprotection`.`blocks`
+                    FROM `blocks`
                     WHERE
                         `blocks`.`world` = UUID_TO_BIN(?) AND
                         `blocks`.`chunkX` BETWEEN ? AND ? AND
@@ -492,7 +492,7 @@ public class BlocksDatabase extends Database {
         try (Connection connection = getConnection()) {
 
             final String SQL_INSERT_BLOCK = """
-                    INSERT INTO `blockprotection`.`blocks` (
+                    INSERT INTO `blocks` (
                         `world`,
                         `chunkX`, `chunkZ`,
                         `x`, `y`, `z`,
@@ -540,7 +540,7 @@ public class BlocksDatabase extends Database {
         final String SQL_COUNT_NEARBY_BLOCKS = """
                 SELECT
                     COUNT(*)
-                FROM `blockprotection`.`blocks`
+                FROM `blocks`
                 WHERE
                     `blocks`.`world` = UUID_TO_BIN(?) AND
                     `blocks`.`chunkX` BETWEEN ? AND ? AND
@@ -553,7 +553,7 @@ public class BlocksDatabase extends Database {
                         UUID_TO_BIN(?) IN (
                             SELECT
                                 `friends`.`player`
-                            FROM `blockprotection`.`friends`
+                            FROM `friends`
                             WHERE
                                 `friends`.`friend` = `blocks`.`owner`
                         )
@@ -580,7 +580,7 @@ public class BlocksDatabase extends Database {
 
         final String SQL_UPDATE_NEARBY_BLOCKS = """
                 UPDATE
-                    `blockprotection`.`blocks`
+                    `blocks`
                 SET
                     `blocks`.`temporaryBlock` = FALSE
                 WHERE
@@ -595,7 +595,7 @@ public class BlocksDatabase extends Database {
                         UUID_TO_BIN(?) IN (
                             SELECT
                                 `friends`.`player`
-                            FROM `blockprotection`.`friends`
+                            FROM `friends`
                             WHERE
                                 `friends`.`friend` = `blocks`.`owner`
                         )
@@ -614,7 +614,7 @@ public class BlocksDatabase extends Database {
                                                 Location location, UUID owner, ProtectionRadius radius)
             throws SQLException {
         final String SQL_UPDATE_TIME = """
-                UPDATE `blockprotection`.`blocks`
+                UPDATE `blocks`
                 SET
                     `blocks`.`lastModification` = NOW(),
                     `blocks`.`owner` = UUID_TO_BIN(?)
@@ -630,7 +630,7 @@ public class BlocksDatabase extends Database {
                             UUID_TO_BIN(?) IN (
                                 SELECT
                                     `friends`.`friend`
-                                FROM `blockprotection`.`friends`
+                                FROM `friends`
                                 WHERE
                                     `friends`.`player` = `blocks`.`owner`
                             )
@@ -665,7 +665,7 @@ public class BlocksDatabase extends Database {
     public void deleteBlock(Location location, CompletableFuture<Void> future) {
         try (Connection connection = getConnection()) {
             final String SQL_DELETE_BLOCK = """
-                    DELETE IGNORE FROM `blockprotection`.`blocks`
+                    DELETE IGNORE FROM `blocks`
                     WHERE
                         `world` = UUID_TO_BIN(?) AND
                         `chunkX` = ? AND
@@ -695,7 +695,7 @@ public class BlocksDatabase extends Database {
     public void deleteBlocks(List<Location> locations, CompletableFuture<Void> future) {
         try (Connection connection = getConnection()) {
             final String SQL_DELETE_BLOCK = """
-                    DELETE IGNORE FROM `blockprotection`.`blocks`
+                    DELETE IGNORE FROM `blocks`
                     WHERE
                         `world` = UUID_TO_BIN(?) AND
                         `chunkX` = ? AND
@@ -728,7 +728,7 @@ public class BlocksDatabase extends Database {
     public void deleteNearbyBlocks(Location location, ProtectionRadius radius, CompletableFuture<Void> future) {
         try (Connection connection = getConnection()) {
             final String SQL_DELETE_RADIUS = """
-                    DELETE IGNORE FROM `blockprotection`.`blocks`
+                    DELETE IGNORE FROM `blocks`
                     WHERE
                         `world` = UUID_TO_BIN(?) AND
                         `chunkX` BETWEEN ? AND ? AND
