@@ -10,7 +10,6 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public record BlockPistonListener(BlockProtectionPlugin plugin) implements Listener {
@@ -20,7 +19,7 @@ public record BlockPistonListener(BlockProtectionPlugin plugin) implements Liste
         List<Location> locations = event.getBlocks().stream()
                                            .map(Block::getLocation)
                                            .collect(Collectors.toList());
-        plugin.getBlocksDatabase().deleteBlocksAsync(locations, new CompletableFuture<>());
+        plugin.getBlocksDatabase().deleteBlocksAsync(locations);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -28,6 +27,6 @@ public record BlockPistonListener(BlockProtectionPlugin plugin) implements Liste
         List<Location> locations = event.getBlocks().stream()
                                            .map(Block::getLocation)
                                            .collect(Collectors.toList());
-        plugin.getBlocksDatabase().deleteBlocksAsync(locations, new CompletableFuture<>());
+        plugin.getBlocksDatabase().deleteBlocksAsync(locations);
     }
 }

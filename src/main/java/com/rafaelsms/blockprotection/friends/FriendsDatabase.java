@@ -23,15 +23,15 @@ public class FriendsDatabase extends Database {
     }
 
     private synchronized void setupSchema() throws SQLException {
-        try (Connection connection = getConnection()) {
-            final String SQL_CREATE_TABLE = """
-                    CREATE TABLE IF NOT EXISTS `friends` (
-                      `player` BINARY(16) NOT NULL,
-                      `friend` BINARY(16) NOT NULL,
-                      PRIMARY KEY (`player`, `friend`),
-                      INDEX `friendsIndex` (`friend` ASC));
-                    """;
-            PreparedStatement statement = connection.prepareStatement(SQL_CREATE_TABLE);
+        final String SQL_CREATE_TABLE = """
+                CREATE TABLE IF NOT EXISTS `friends` (
+                  `player` BINARY(16) NOT NULL,
+                  `friend` BINARY(16) NOT NULL,
+                  PRIMARY KEY (`player`, `friend`),
+                  INDEX `friendsIndex` (`friend` ASC));
+                """;
+        try (Connection connection = getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_CREATE_TABLE)) {
             statement.execute();
         }
     }
@@ -43,24 +43,24 @@ public class FriendsDatabase extends Database {
      * @return a unmodifiable set of friends or null if query failed
      */
     public synchronized Set<OfflinePlayer> listFriends(UUID player) {
-        try (Connection connection = getConnection()) {
-            final String SQL_SELECT_FRIENDS = """
-                    SELECT
-                        BIN_TO_UUID(`friends`.`friend`)
-                    FROM `friends`
-                    WHERE
-                        `friends`.`player` = UUID_TO_BIN(?);
-                    """;
-            PreparedStatement statement = connection.prepareStatement(SQL_SELECT_FRIENDS);
-
+        final String SQL_SELECT_FRIENDS = """
+                SELECT
+                    BIN_TO_UUID(`friends`.`friend`)
+                FROM `friends`
+                WHERE
+                    `friends`.`player` = UUID_TO_BIN(?);
+                """;
+        try (Connection connection = getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_SELECT_FRIENDS)) {
             statement.setString(1, player.toString());
-            ResultSet result = statement.executeQuery();
 
             // For every result, populate the set
             HashSet<OfflinePlayer> friends = new HashSet<>();
-            while (result.next()) {
-                OfflinePlayer friend = plugin.getServer().getOfflinePlayer(UUID.fromString(result.getString(1)));
-                friends.add(friend);
+            try (ResultSet result = statement.executeQuery()) {
+                while (result.next()) {
+                    OfflinePlayer friend = plugin.getServer().getOfflinePlayer(UUID.fromString(result.getString(1)));
+                    friends.add(friend);
+                }
             }
 
             // Return unmodifiable set
@@ -74,14 +74,14 @@ public class FriendsDatabase extends Database {
     }
 
     public synchronized boolean addFriend(UUID player, UUID friend) {
-        try (Connection connection = getConnection()) {
-            final String SQL_INSERT_FRIEND = """
-                    INSERT INTO `friends`
-                       (`player`, `friend`)
-                    VALUES
-                       (UUID_TO_BIN(?), UUID_TO_BIN(?));
-                    """;
-            PreparedStatement statement = connection.prepareStatement(SQL_INSERT_FRIEND);
+        final String SQL_INSERT_FRIEND = """
+                INSERT INTO `friends`
+                   (`player`, `friend`)
+                VALUES
+                   (UUID_TO_BIN(?), UUID_TO_BIN(?));
+                """;
+        try (Connection connection = getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_INSERT_FRIEND)) {
 
             statement.setString(1, player.toString());
             statement.setString(2, friend.toString());
@@ -96,14 +96,14 @@ public class FriendsDatabase extends Database {
     }
 
     public synchronized boolean removeFriend(UUID player, UUID friend) {
-        try (Connection connection = getConnection()) {
-            final String SQL_DELETE_FRIEND = """
-                    DELETE FROM `friends`
-                    WHERE
-                        `friends`.`player` = UUID_TO_BIN(?) AND
-                        `friends`.`friend` = UUID_TO_BIN(?);
-                    """;
-            PreparedStatement statement = connection.prepareStatement(SQL_DELETE_FRIEND);
+        final String SQL_DELETE_FRIEND = """
+                DELETE FROM `friends`
+                WHERE
+                    `friends`.`player` = UUID_TO_BIN(?) AND
+                    `friends`.`friend` = UUID_TO_BIN(?);
+                """;
+        try (Connection connection = getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_FRIEND)) {
 
             statement.setString(1, player.toString());
             statement.setString(2, friend.toString());
@@ -118,13 +118,13 @@ public class FriendsDatabase extends Database {
     }
 
     public synchronized boolean removeAllFriends(UUID player) {
-        try (Connection connection = getConnection()) {
-            final String SQL_DELETE_FRIEND = """
-                    DELETE FROM `friends`
-                    WHERE
-                        `friends`.`player` = UUID_TO_BIN(?);
-                    """;
-            PreparedStatement statement = connection.prepareStatement(SQL_DELETE_FRIEND);
+        final String SQL_DELETE_FRIEND = """
+                DELETE FROM `friends`
+                WHERE
+                    `friends`.`player` = UUID_TO_BIN(?);
+                """;
+        try (Connection connection = getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_FRIEND)) {
             statement.setString(1, player.toString());
             statement.execute();
             return true;

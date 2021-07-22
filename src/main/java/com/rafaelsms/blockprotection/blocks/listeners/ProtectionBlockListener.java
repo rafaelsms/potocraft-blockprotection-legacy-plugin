@@ -4,7 +4,10 @@ import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.Lang;
 import com.rafaelsms.blockprotection.Permission;
-import com.rafaelsms.blockprotection.blocks.events.*;
+import com.rafaelsms.blockprotection.blocks.events.AttemptBreakEvent;
+import com.rafaelsms.blockprotection.blocks.events.AttemptPlaceEvent;
+import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
+import com.rafaelsms.blockprotection.blocks.events.PlaceEvent;
 import com.rafaelsms.blockprotection.util.BlockKey;
 import com.rafaelsms.blockprotection.util.ProtectedBlock;
 import com.rafaelsms.blockprotection.util.ProtectedBlockDate;
@@ -33,7 +36,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public class ProtectionBlockListener implements Listener {
 
@@ -336,7 +338,7 @@ public class ProtectionBlockListener implements Listener {
 
         // Delete protected blocks nearby (small radius)
         plugin.getBlocksDatabase().deleteNearbyBlocksAsync(
-                event.getTo(), plugin.getBlocksDatabase().getPortalDeleteRadius(), new CompletableFuture<>());
+                event.getTo(), plugin.getBlocksDatabase().getPortalDeleteRadius());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
@@ -493,7 +495,7 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Asynchronously remove from database
-        plugin.getBlocksDatabase().deleteBlockAsync(event.getBlock().getLocation(), new CompletableFuture<>());
+        plugin.getBlocksDatabase().deleteBlockAsync(event.getBlock().getLocation());
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -519,7 +521,7 @@ public class ProtectionBlockListener implements Listener {
 
         // Asynchronously insert into the database
         plugin.getBlocksDatabase().insertBlockAsync(
-                event.getBlock().getLocation(), event.getPlayerUUID(), new CompletableFuture<>());
+                event.getBlock().getLocation(), event.getPlayerUUID());
     }
 
 }

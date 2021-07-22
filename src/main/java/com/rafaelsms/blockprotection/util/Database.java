@@ -3,9 +3,6 @@ package com.rafaelsms.blockprotection.util;
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.zaxxer.hikari.HikariDataSource;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 public abstract class Database {
 
     private static HikariDataSource dataSource;
@@ -16,8 +13,8 @@ public abstract class Database {
         this.plugin = plugin;
     }
 
-    protected Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+    protected HikariDataSource getDataSource() {
+        return dataSource;
     }
 
     public static void setDataSource(HikariDataSource dataSource) {
