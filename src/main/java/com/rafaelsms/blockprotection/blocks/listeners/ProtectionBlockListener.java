@@ -4,10 +4,7 @@ import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.Lang;
 import com.rafaelsms.blockprotection.Permission;
-import com.rafaelsms.blockprotection.blocks.events.AttemptBreakEvent;
-import com.rafaelsms.blockprotection.blocks.events.AttemptPlaceEvent;
-import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
-import com.rafaelsms.blockprotection.blocks.events.PlaceEvent;
+import com.rafaelsms.blockprotection.blocks.events.*;
 import com.rafaelsms.blockprotection.util.BlockKey;
 import com.rafaelsms.blockprotection.util.ProtectedBlock;
 import com.rafaelsms.blockprotection.util.ProtectedBlockDate;
@@ -15,6 +12,7 @@ import com.rafaelsms.blockprotection.util.ProtectionQuery;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
@@ -36,6 +34,7 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ProtectionBlockListener implements Listener {
 
@@ -127,6 +126,16 @@ public class ProtectionBlockListener implements Listener {
         }
 
         return false;
+    }
+
+    private boolean shouldIgnore(Collection<Block> blocks) {
+        for (Block block : blocks) {
+            if (!shouldIgnore(block, null)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private void sendPlayerMessage(Player player, ProtectionQuery result) {
@@ -465,6 +474,30 @@ public class ProtectionBlockListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    private void onAttemptMultiBreak(AttemptMultiBreakEvent event) {
+        // Check if we need to check any of the blocks
+        if (shouldIgnore(event.getBlocks())) {
+            return;
+        }
+
+        final List<Location> locations = event.getBlocks().stream()
+                                                 .map(Block::getLocation)
+                                                 .collect(Collectors.toList());
+        final World world = locations.get(0).getWorld();
+
+        // Check if there are protected blocks nearby
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                world, locations, plugin.getBlocksDatabase().getBreakRadius());
+
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
+        }
+        // If there isn't, allow break
+    }
+
+    @EventHandler(ignoreCancelled = true)
     private void onAttemptPlace(AttemptPlaceEvent event) {
         Block block = event.getBlock();
         // Avoid any check when not in a protected environment
@@ -483,6 +516,31 @@ public class ProtectionBlockListener implements Listener {
             event.setCancelled(true);
             // Send player message
             sendPlayerMessage(event.getPlayer(), result);
+        }
+        // If there isn't, allow place
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private void onAttemptMultiPlace(AttemptMultiPlaceEvent event) {
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(event.getBlocks())) {
+            return;
+        }
+
+        final List<Location> locations = event.getBlocks().stream()
+                                                 .map(Block::getLocation)
+                                                 .collect(Collectors.toList());
+        final World world = locations.get(0).getWorld();
+
+        // Check if there are protected blocks nearby
+        ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
+                world, locations, plugin.getBlocksDatabase().getPlaceRadius()
+        );
+
+        // Check if it is protected
+        if (result.isProtected()) {
+            // Cancel the event
+            event.setCancelled(true);
         }
         // If there isn't, allow place
     }

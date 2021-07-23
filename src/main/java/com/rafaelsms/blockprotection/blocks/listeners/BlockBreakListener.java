@@ -4,6 +4,7 @@ import com.rafaelsms.blockprotection.BlockProtectionPlugin;
 import com.rafaelsms.blockprotection.blocks.events.AttemptBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.AttemptMultiBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
+import com.rafaelsms.blockprotection.blocks.events.MultiBreakEvent;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -23,12 +24,20 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onEntityExplodeBlocks(EntityExplodeEvent event) {
+        // Ignore explosives
+        if (event.getEntityType() == EntityType.PRIMED_TNT ||
+                    event.getEntityType() == EntityType.MINECART_TNT ||
+                    event.getEntityType() == EntityType.ENDER_CRYSTAL) {
+            return;
+        }
+
         AttemptMultiBreakEvent breakEvent = new AttemptMultiBreakEvent(event.blockList());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
 
         // Check if event was cancelled
         if (breakEvent.isCancelled()) {
-            event.setCancelled(true);
+            // Clear list instead of cancelling it
+            event.blockList().clear();
         }
     }
 
@@ -142,6 +151,17 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     private void onFadeMonitor(BlockFadeEvent event) {
         BreakEvent breakEvent = new BreakEvent(event.getBlock());
+        plugin.getServer().getPluginManager().callEvent(breakEvent);
+    }
+
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    private void onEntityExplodeBlocksMonitor(EntityExplodeEvent event) {
+        // Ignore empty block list
+        if (event.blockList().isEmpty()) {
+            return;
+        }
+
+        MultiBreakEvent breakEvent = new MultiBreakEvent(event.blockList());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
     }
 }
