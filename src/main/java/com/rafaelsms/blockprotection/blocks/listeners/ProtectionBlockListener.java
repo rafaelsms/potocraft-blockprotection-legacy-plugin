@@ -557,6 +557,21 @@ public class ProtectionBlockListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    private void onMultiBreak(MultiBreakEvent event) {
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(event.getBlocks())) {
+            return;
+        }
+
+        final List<Location> locations = event.getBlocks().stream()
+                                               .map(Block::getLocation)
+                                               .collect(Collectors.toList());
+
+        // Asynchronously remove from database
+        plugin.getBlocksDatabase().deleteBlocksAsync(locations);
+    }
+
+    @EventHandler(ignoreCancelled = true)
     private void onPlace(PlaceEvent event) {
         // Avoid any check when not in a protected environment
         Player player = event.getPlayer();
