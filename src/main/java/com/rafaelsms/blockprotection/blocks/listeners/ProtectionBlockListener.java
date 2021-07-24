@@ -24,6 +24,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -160,6 +161,23 @@ public class ProtectionBlockListener implements Listener {
 
         // Otherwise, send default message
         Lang.PROTECTION_NEARBY_BLOCKS.sendActionBar(player);
+    }
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    private void onExplosionPrime(ExplosionPrimeEvent event) {
+        // Ignore other worlds
+        if (!protectedWorlds.contains(event.getEntity().getWorld().getUID())) {
+            return;
+        }
+
+        // Ignore non-explosives
+        if (event.getEntityType() != EntityType.PRIMED_TNT &&
+                    event.getEntityType() != EntityType.MINECART_TNT &&
+                    event.getEntityType() != EntityType.ENDER_CRYSTAL) {
+            return;
+        }
+
+        // Make explosion radius half of normal radius
+        event.setRadius(event.getRadius() / 2.0f);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
