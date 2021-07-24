@@ -687,7 +687,7 @@ public class BlocksDatabase extends Database {
     }
 
     public void deleteBlocks(List<Location> locations) {
-        final String SQL_DELETE_BLOCK = """
+        final String SQL_DELETE_BLOCKS = """
                 DELETE IGNORE FROM `blocks`
                 WHERE
                     `world` = UUID_TO_BIN(?) AND
@@ -697,14 +697,16 @@ public class BlocksDatabase extends Database {
                     `y` = ? AND
                     `z` = ?;
                 """;
-        try (Connection connection = getDataSource().getConnection();
-             PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BLOCK)) {
-
+        try (Connection connection = getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
             for (Location location : locations) {
-                setLocation(statement, location, 0);
-                statement.addBatch();
+                try (PreparedStatement statement = connection.prepareStatement(SQL_DELETE_BLOCKS)) {
+                    setLocation(statement, location, 0);
+                    statement.execute();
+                }
             }
-            statement.executeBatch();
+            connection.commit();
+            connection.setAutoCommit(true);
         } catch (SQLException exception) {
             plugin.getLogger().severe("Failed to delete block: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
