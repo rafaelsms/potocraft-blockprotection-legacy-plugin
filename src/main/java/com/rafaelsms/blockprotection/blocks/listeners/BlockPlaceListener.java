@@ -125,7 +125,7 @@ public record BlockPlaceListener(BlockProtectionPlugin plugin) implements Listen
 
         // Check if event was cancelled
         if (placeEvent.isCancelled()) {
-            event.setCancelled(false);
+            event.setCancelled(true);
             event.setBuild(false);
         }
     }
