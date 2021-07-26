@@ -514,27 +514,7 @@ public class BlocksDatabase extends Database {
             connection.setAutoCommit(false);
             // Search and update temporary blocks nearby
             if (searchRadius != null && searchRadius.getBlockRadius() > 0) {
-                updateNearbyTemporaryBlocks(connection,
-                        location, owner, searchRadius, blockCountToProtect);
-            }
-
-            // Search and update all blocks for time
-            if (updateRadius != null && updateRadius.getBlockRadius() > 0) {
-                updateNearbyBlocksTimeAndOwner(connection, location, owner, updateRadius);
-            }
-            connection.commit();
-            connection.setAutoCommit(true);
-        } catch (SQLException exception) {
-            plugin.getLogger().severe("Failed to insert block on database: %s".formatted(exception.getMessage()));
-            exception.printStackTrace();
-        }
-    }
-
-    private void updateNearbyTemporaryBlocks(Connection connection,
-                                             Location location, UUID owner,
-                                             ProtectionRadius searchRadius, int blockCountToProtect)
-            throws SQLException {
-        final String SQL_COUNT_NEARBY_BLOCKS = """
+                final String SQL_COUNT_NEARBY_BLOCKS = """
                 SELECT
                     COUNT(*)
                 FROM `blocks`
@@ -557,28 +537,28 @@ public class BlocksDatabase extends Database {
                     );
                 """;
 
-        try (PreparedStatement countStatement = connection.prepareStatement(SQL_COUNT_NEARBY_BLOCKS)) {
-            setLocation(countStatement, location, searchRadius, 0);
-            // Owner
-            countStatement.setString(12, owner.toString());
-            countStatement.setString(13, owner.toString());
+                try (PreparedStatement countStatement = connection.prepareStatement(SQL_COUNT_NEARBY_BLOCKS)) {
+                    setLocation(countStatement, location, searchRadius, 0);
+                    // Owner
+                    countStatement.setString(12, owner.toString());
+                    countStatement.setString(13, owner.toString());
 
-            int nearbyBlocks;
-            try (ResultSet countResult = countStatement.executeQuery()) {
-                if (countResult.next()) {
-                    nearbyBlocks = countResult.getInt(1);
-                } else {
-                    nearbyBlocks = 0;
+                    int nearbyBlocks;
+                    try (ResultSet countResult = countStatement.executeQuery()) {
+                        if (countResult.next()) {
+                            nearbyBlocks = countResult.getInt(1);
+                        } else {
+                            nearbyBlocks = 0;
+                        }
+                    }
+
+                    // Exit if count result is less than needed
+                    if (nearbyBlocks < blockCountToProtect) {
+                        return;
+                    }
                 }
-            }
 
-            // Exit if count result is less than needed
-            if (nearbyBlocks < blockCountToProtect) {
-                return;
-            }
-        }
-
-        final String SQL_UPDATE_NEARBY_BLOCKS = """
+                final String SQL_UPDATE_NEARBY_BLOCKS = """
                 UPDATE
                     `blocks`
                 SET
@@ -601,20 +581,19 @@ public class BlocksDatabase extends Database {
                         )
                     );
                 """;
-        try (PreparedStatement updateStatement = connection.prepareStatement(SQL_UPDATE_NEARBY_BLOCKS)) {
-            updateStatement.closeOnCompletion();
-            setLocation(updateStatement, location, searchRadius, 0);
-            // Owner
-            updateStatement.setString(12, owner.toString());
-            updateStatement.setString(13, owner.toString());
-            updateStatement.executeUpdate();
-        }
-    }
+                try (PreparedStatement updateStatement = connection.prepareStatement(SQL_UPDATE_NEARBY_BLOCKS)) {
+                    updateStatement.closeOnCompletion();
+                    setLocation(updateStatement, location, searchRadius, 0);
+                    // Owner
+                    updateStatement.setString(12, owner.toString());
+                    updateStatement.setString(13, owner.toString());
+                    updateStatement.executeUpdate();
+                }
+            }
 
-    private void updateNearbyBlocksTimeAndOwner(Connection connection,
-                                                Location location, UUID owner, ProtectionRadius radius)
-            throws SQLException {
-        final String SQL_UPDATE_TIME = """
+            // Search and update all blocks for time
+            if (updateRadius != null && updateRadius.getBlockRadius() > 0) {
+                final String SQL_UPDATE_TIME = """
                 UPDATE `blocks`
                 SET
                     `blocks`.`lastModification` = NOW(),
@@ -641,19 +620,27 @@ public class BlocksDatabase extends Database {
                         )
                     );
                 """;
-        try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME)) {
-            statement.closeOnCompletion();
-            // Set owner
-            statement.setString(1, owner.toString());
-            // Set location
-            setLocation(statement, location, radius, 1);
-            // Set owner
-            statement.setString(13, owner.toString());
-            statement.setString(14, owner.toString());
-            // Set time
-            statement.setInt(15, daysProtected);
-            // Execute
-            statement.execute();
+                try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME)) {
+                    statement.closeOnCompletion();
+                    // Set owner
+                    statement.setString(1, owner.toString());
+                    // Set location
+                    setLocation(statement, location, updateRadius, 1);
+                    // Set owner
+                    statement.setString(13, owner.toString());
+                    statement.setString(14, owner.toString());
+                    // Set time
+                    statement.setInt(15, daysProtected);
+                    // Execute
+                    statement.execute();
+                }
+            }
+
+            connection.commit();
+            connection.setAutoCommit(true);
+        } catch (SQLException exception) {
+            plugin.getLogger().severe("Failed to insert block on database: %s".formatted(exception.getMessage()));
+            exception.printStackTrace();
         }
     }
 
