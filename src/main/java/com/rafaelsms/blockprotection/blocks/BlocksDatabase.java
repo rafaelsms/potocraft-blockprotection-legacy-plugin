@@ -502,13 +502,14 @@ public class BlocksDatabase extends Database {
                     TRUE
                 ) ON DUPLICATE KEY UPDATE `owner` = UUID_TO_BIN(?);
                 """;
-        try (Connection connection = getDataSource().getConnection();
-             PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_BLOCK)) {
-            setLocation(insertStatement, location, 0);
-            // Owner
-            insertStatement.setString(7, owner.toString());
-            insertStatement.setString(8, owner.toString());
-            insertStatement.execute();
+        try (Connection connection = getDataSource().getConnection()) {
+            try (PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_BLOCK)) {
+                setLocation(insertStatement, location, 0);
+                // Owner
+                insertStatement.setString(7, owner.toString());
+                insertStatement.setString(8, owner.toString());
+                insertStatement.execute();
+            }
 
             // Start single transaction here as we don't want to rollback the insert
             connection.setAutoCommit(false);
