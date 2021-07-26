@@ -96,17 +96,6 @@ public record BlockPlaceListener(BlockProtectionPlugin plugin) implements Listen
         }
     }
 
-//    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-//    private void onCanBuildBlock(BlockCanBuildEvent event) {
-//        AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
-//        plugin.getServer().getPluginManager().callEvent(placeEvent);
-//
-//        // Check if event was cancelled
-//        if (placeEvent.isCancelled()) {
-//            event.setBuildable(false);
-//        }
-//    }
-
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBucketEmpty(PlayerBucketEmptyEvent event) {
         AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());

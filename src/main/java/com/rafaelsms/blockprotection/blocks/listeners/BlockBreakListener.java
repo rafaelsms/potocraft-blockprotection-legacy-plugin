@@ -119,17 +119,6 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
         }
     }
 
-//    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-//    private void onDamage(BlockDamageEvent event) {
-//        AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
-//        plugin.getServer().getPluginManager().callEvent(breakEvent);
-//
-//        // Check if it was cancelled
-//        if (breakEvent.isCancelled()) {
-//            event.setCancelled(true);
-//        }
-//    }
-
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBreak(BlockBreakEvent event) {
         AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
