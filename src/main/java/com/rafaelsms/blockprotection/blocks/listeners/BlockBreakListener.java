@@ -13,7 +13,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
-import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockFadeEvent;
 import org.bukkit.event.entity.EntityBreakDoorEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
@@ -120,16 +119,16 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    private void onDamage(BlockDamageEvent event) {
-        AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
-        plugin.getServer().getPluginManager().callEvent(breakEvent);
-
-        // Check if it was cancelled
-        if (breakEvent.isCancelled()) {
-            event.setCancelled(true);
-        }
-    }
+//    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+//    private void onDamage(BlockDamageEvent event) {
+//        AttemptBreakEvent breakEvent = new AttemptBreakEvent(event.getBlock(), event.getPlayer());
+//        plugin.getServer().getPluginManager().callEvent(breakEvent);
+//
+//        // Check if it was cancelled
+//        if (breakEvent.isCancelled()) {
+//            event.setCancelled(true);
+//        }
+//    }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBreak(BlockBreakEvent event) {

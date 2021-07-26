@@ -12,7 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockMultiPlaceEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
@@ -97,16 +96,16 @@ public record BlockPlaceListener(BlockProtectionPlugin plugin) implements Listen
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
-    private void onCanBuildBlock(BlockCanBuildEvent event) {
-        AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
-        plugin.getServer().getPluginManager().callEvent(placeEvent);
-
-        // Check if event was cancelled
-        if (placeEvent.isCancelled()) {
-            event.setBuildable(false);
-        }
-    }
+//    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+//    private void onCanBuildBlock(BlockCanBuildEvent event) {
+//        AttemptPlaceEvent placeEvent = new AttemptPlaceEvent(event.getBlock(), event.getPlayer());
+//        plugin.getServer().getPluginManager().callEvent(placeEvent);
+//
+//        // Check if event was cancelled
+//        if (placeEvent.isCancelled()) {
+//            event.setBuildable(false);
+//        }
+//    }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onBucketEmpty(PlayerBucketEmptyEvent event) {
