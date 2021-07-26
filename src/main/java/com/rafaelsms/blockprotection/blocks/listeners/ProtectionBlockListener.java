@@ -405,6 +405,11 @@ public class ProtectionBlockListener implements Listener {
                     continue;
                 }
 
+                // Skip weaker than glass materials (carpet, torches)
+                if (next.getType().getBlastResistance() < Material.GLASS.getBlastResistance()) {
+                    continue;
+                }
+
                 // Check if next block is the inventory holder
                 if (!BlockKey.fromBlock(block).equals(BlockKey.fromBlock(next))) {
                     // If it doesn't, cancel the event and return
