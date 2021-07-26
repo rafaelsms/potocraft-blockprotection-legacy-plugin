@@ -68,7 +68,9 @@ public class BlocksDatabase extends Database {
                   `lastModification` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                   `owner` binary(16) NOT NULL,
                   PRIMARY KEY (`world`,`x`,`y`,`z`),
-                  KEY `chunkIndex` (`world`,`chunkX`,`chunkZ`)
+                  KEY `chunkIndex` (`world`,`chunkX`,`chunkZ`),
+                  KEY `temporaryBlockIndex` (`temporaryBlock`),
+                  KEY `timeIndex` (`lastModification`)
                 ) ;
                 """;
         try (Connection connection = getDataSource().getConnection();
