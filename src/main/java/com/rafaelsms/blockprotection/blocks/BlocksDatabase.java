@@ -510,6 +510,8 @@ public class BlocksDatabase extends Database {
             insertStatement.setString(8, owner.toString());
             insertStatement.execute();
 
+            // Start single transaction here as we don't want to rollback the insert
+            connection.setAutoCommit(false);
             // Search and update temporary blocks nearby
             if (searchRadius != null && searchRadius.getBlockRadius() > 0) {
                 updateNearbyTemporaryBlocks(connection,
@@ -520,6 +522,8 @@ public class BlocksDatabase extends Database {
             if (updateRadius != null && updateRadius.getBlockRadius() > 0) {
                 updateNearbyBlocksTimeAndOwner(connection, location, owner, updateRadius);
             }
+            connection.commit();
+            connection.setAutoCommit(true);
         } catch (SQLException exception) {
             plugin.getLogger().severe("Failed to insert block on database: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
