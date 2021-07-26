@@ -24,6 +24,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -162,6 +163,7 @@ public class ProtectionBlockListener implements Listener {
         // Otherwise, send default message
         Lang.PROTECTION_NEARBY_BLOCKS.sendActionBar(player);
     }
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onExplosionPrime(ExplosionPrimeEvent event) {
         // Ignore other worlds
@@ -463,6 +465,21 @@ public class ProtectionBlockListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    private void onLavaFlow(BlockFromToEvent event) {
+        // Check if block is lava
+        if (event.getBlock().getType() != Material.LAVA) {
+            return;
+        }
+
+        // Check if in unprotected area
+        if (event.getToBlock().getY() < minimumProtectedHeight) {
+            return;
+        }
+
+        event.setCancelled(true);
+    }
+
     @EventHandler(ignoreCancelled = true)
     private void onAttemptBreak(AttemptBreakEvent event) {
         Block block = event.getBlock();
@@ -582,8 +599,8 @@ public class ProtectionBlockListener implements Listener {
         }
 
         final List<Location> locations = event.getBlocks().stream()
-                                               .map(Block::getLocation)
-                                               .collect(Collectors.toList());
+                                                 .map(Block::getLocation)
+                                                 .collect(Collectors.toList());
 
         // Asynchronously remove from database
         plugin.getBlocksDatabase().deleteBlocksAsync(locations);
