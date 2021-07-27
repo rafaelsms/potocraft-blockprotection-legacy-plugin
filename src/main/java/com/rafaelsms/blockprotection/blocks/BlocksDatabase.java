@@ -89,8 +89,8 @@ public class BlocksDatabase extends Database {
         // World id
         statement.setString(offset + 1, location.getWorld().getUID().toString());
         // Chunk coordinates
-        statement.setInt(offset + 2, location.getChunk().getX());
-        statement.setInt(offset + 3, location.getChunk().getZ());
+        statement.setInt(offset + 2, location.getBlockX() >> 4);
+        statement.setInt(offset + 3, location.getBlockZ() >> 4);
         // Block coordinates
         statement.setInt(offset + 4, location.getBlockX());
         statement.setInt(offset + 5, location.getBlockY());
@@ -108,11 +108,13 @@ public class BlocksDatabase extends Database {
         // world's UUID
         statement.setString(offset + 1, location.getWorld().getUID().toString());
         // chunkX
-        statement.setInt(offset + 2, location.getChunk().getX() - radius.getChunkRadius());
-        statement.setInt(offset + 3, location.getChunk().getX() + radius.getChunkRadius());
+        final int chunkX = location.getBlockX() >> 4;
+        statement.setInt(offset + 2, chunkX - radius.getChunkRadius());
+        statement.setInt(offset + 3, chunkX + radius.getChunkRadius());
         // chunkZ
-        statement.setInt(offset + 4, location.getChunk().getZ() - radius.getChunkRadius());
-        statement.setInt(offset + 5, location.getChunk().getZ() + radius.getChunkRadius());
+        final int chunkZ = location.getBlockZ() >> 4;
+        statement.setInt(offset + 4, chunkZ - radius.getChunkRadius());
+        statement.setInt(offset + 5, chunkZ + radius.getChunkRadius());
         // x
         statement.setInt(offset + 6, location.getBlockX() - radius.getBlockRadius());
         statement.setInt(offset + 7, location.getBlockX() + radius.getBlockRadius());
@@ -215,25 +217,27 @@ public class BlocksDatabase extends Database {
                 return null;
             }
             assert location.getWorld() != null;
+            final int chunkX = location.getBlockX() >> 4;
+            final int chunkZ = location.getBlockZ() >> 4;
             // Set variables for inner SELECT
             // World uuid
             statement.setString(1, location.getWorld().getUID().toString());
             // Chunk X
-            statement.setInt(2, location.getChunk().getX() - radius.getChunkRadius());
-            statement.setInt(3, location.getChunk().getX() + radius.getChunkRadius());
+            statement.setInt(2, chunkX - radius.getChunkRadius());
+            statement.setInt(3, chunkX + radius.getChunkRadius());
             // Chunk Z
-            statement.setInt(4, location.getChunk().getZ() - radius.getChunkRadius());
-            statement.setInt(5, location.getChunk().getZ() + radius.getChunkRadius());
+            statement.setInt(4, chunkZ - radius.getChunkRadius());
+            statement.setInt(5, chunkZ + radius.getChunkRadius());
 
             // Set variables for outer SELECT
             // World uuid again
             statement.setString(6, location.getWorld().getUID().toString());
             // Chunk X range
-            statement.setInt(7, location.getChunk().getX() - radius.getChunkRadius());
-            statement.setInt(8, location.getChunk().getX() + radius.getChunkRadius());
+            statement.setInt(7, chunkX - radius.getChunkRadius());
+            statement.setInt(8, chunkX + radius.getChunkRadius());
             // Chunk Y range
-            statement.setInt(9, location.getChunk().getZ() - radius.getChunkRadius());
-            statement.setInt(10, location.getChunk().getZ() + radius.getChunkRadius());
+            statement.setInt(9, chunkZ - radius.getChunkRadius());
+            statement.setInt(10, chunkZ + radius.getChunkRadius());
             // X
             statement.setInt(11, location.getBlockX() - radius.getBlockRadius());
             statement.setInt(12, location.getBlockX() + radius.getBlockRadius());
@@ -440,10 +444,10 @@ public class BlocksDatabase extends Database {
             // Set world
             statement.setString(1, higherCorner.getWorld().getUID().toString());
             // Set chunks from lower corner - radius to higher corner + radius
-            statement.setInt(2, lowerCorner.getChunk().getX() - radius.getChunkRadius());
-            statement.setInt(3, higherCorner.getChunk().getX() + radius.getChunkRadius());
-            statement.setInt(4, lowerCorner.getChunk().getZ() - radius.getChunkRadius());
-            statement.setInt(5, higherCorner.getChunk().getZ() + radius.getChunkRadius());
+            statement.setInt(2, (lowerCorner.getBlockX() >> 4) - radius.getChunkRadius());
+            statement.setInt(3, (higherCorner.getBlockX() >> 4) + radius.getChunkRadius());
+            statement.setInt(4, (lowerCorner.getBlockZ() >> 4) - radius.getChunkRadius());
+            statement.setInt(5, (higherCorner.getBlockZ() >> 4) + radius.getChunkRadius());
             // Set coordinates the same way
             statement.setInt(6, lowerCorner.getBlockX() - radius.getBlockRadius());
             statement.setInt(7, higherCorner.getBlockX() + radius.getBlockRadius());
@@ -583,7 +587,6 @@ public class BlocksDatabase extends Database {
                     );
                 """;
                 try (PreparedStatement updateStatement = connection.prepareStatement(SQL_UPDATE_NEARBY_BLOCKS)) {
-                    updateStatement.closeOnCompletion();
                     setLocation(updateStatement, location, searchRadius, 0);
                     // Owner
                     updateStatement.setString(12, owner.toString());
@@ -622,7 +625,6 @@ public class BlocksDatabase extends Database {
                     );
                 """;
                 try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME)) {
-                    statement.closeOnCompletion();
                     // Set owner
                     statement.setString(1, owner.toString());
                     // Set location
