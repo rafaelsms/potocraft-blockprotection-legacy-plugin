@@ -16,15 +16,33 @@ public enum Config {
     PROTECTION_DAYS_PROTECTED("config.protection.protected_for_days"),
     PROTECTION_MINIMUM_HEIGHT("config.protection.minimum_height_to_protect"),
 
-    PROTECTION_PROTECTION_BREAK_RADIUS("config.protection.protection_break_radius"),
-    PROTECTION_PROTECTION_PLACE_RADIUS("config.protection.protection_place_radius"),
-    PROTECTION_PROTECTION_INTERACT_RADIUS("config.protection.protection_interact_radius"),
+    // Protect radius
+    PROTECTION_BREAK_RADIUS("config.protection.protection_radius.break_radius"),
+    PROTECTION_PLACE_RADIUS("config.protection.protection_radius.place_radius"),
+    PROTECTION_INTERACT_RADIUS("config.protection.protection_radius.interact_radius"),
 
-    PROTECTION_PROTECTION_PLACE_UPDATE_TIME_RADIUS("config.protection.protection_place_update_time_radius"),
-    PROTECTION_PROTECTION_PLACE_SEARCH_TEMPORARY_RADIUS("config.protection.protection_place_search_temporary_radius"),
-    PROTECTION_PROTECTION_PLACE_BLOCK_COUNT_TO_PROTECT("config.protection.protection_place_block_count_to_protect"),
+    // Update on place protection radius
+    PROTECTION_UPDATE_TIME_RADIUS("config.protection.update_protection_radius.update_time_radius"),
 
+    PROTECTION_SEARCH_TEMPORARY_RADIUS("config.protection.update_protection_radius.search_temporary_radius"),
+    PROTECTION_BLOCK_COUNT_TO_PROTECT("config.protection.update_protection_radius.block_count_to_protect_temporary"),
+
+    // Options
+    PROTECTION_ALLOW_HAND_OPENING_IRON_DOOR("config.protection.options.allow_hand_opening_iron_doors"),
+    PROTECTION_PREVENT_PLAYER_EXPLOSIONS("config.protection.options.prevent_player_explosion"),
+    PROTECTION_PREVENT_HOSTILES_EXPLOSIONS("config.protection.options.prevent_hostiles_explosions"),
+    PROTECTION_EXPLOSION_RADIUS_MULTIPLIER("config.protection.options.explosion_radius_multiplier"),
+    PROTECTION_PREVENT_FIRE_SPREAD("config.protection.options.prevent_fire_spread"),
+    PROTECTION_PREVENT_LAVA_SPREAD("config.protection.options.prevent_lava_spread"),
+    PROTECTION_PREVENT_VEHICLE_ENTER("config.protection.options.prevent_vehicle_enter"),
+    PROTECTION_CHECK_PATH_TO_INVENTORY_HOLDER("config.protection.options.check_open_inventory_holder"),
+    PROTECTION_PREVENT_CHORUS_FRUIT_TELEPORT("config.protection.options.prevent_chorus_fruit_teleport"),
+    PROTECTION_PREVENT_ENDERPEARL_TELEPORT("config.protection.options.prevent_enderpearl_teleport"),
+    PROTECTION_PREVENT_BED_ENTER("config.protection.options.prevent_bed_enter"),
+
+    // Worlds
     PROTECTION_PROTECTED_WORLDS("config.protection.protected_worlds"),
+
     // Materials
     PROTECTION_DEBUG_ITEM("config.protection.materials.debug_item"),
     PROTECTION_MATERIALS_BLOCKS_DENIED_INTERACTION("config.protection.materials.denied_interaction_block"),

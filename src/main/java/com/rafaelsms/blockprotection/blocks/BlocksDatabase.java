@@ -34,14 +34,14 @@ public class BlocksDatabase extends Database {
         super(plugin);
 
         // Get configuration
-        breakRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_BREAK_RADIUS.getInt());
-        placeRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_PLACE_RADIUS.getInt());
-        interactRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_INTERACT_RADIUS.getInt());
+        breakRadius = new ProtectionRadius(Config.PROTECTION_BREAK_RADIUS.getInt());
+        placeRadius = new ProtectionRadius(Config.PROTECTION_PLACE_RADIUS.getInt());
+        interactRadius = new ProtectionRadius(Config.PROTECTION_INTERACT_RADIUS.getInt());
 
-        placeUpdateTimeRadius = new ProtectionRadius(Config.PROTECTION_PROTECTION_PLACE_UPDATE_TIME_RADIUS.getInt());
+        placeUpdateTimeRadius = new ProtectionRadius(Config.PROTECTION_UPDATE_TIME_RADIUS.getInt());
         placeSearchRadiusForTemporary = new ProtectionRadius(
-                Config.PROTECTION_PROTECTION_PLACE_SEARCH_TEMPORARY_RADIUS.getInt());
-        placeNeededNearbyCountToProtect = Config.PROTECTION_PROTECTION_PLACE_BLOCK_COUNT_TO_PROTECT.getInt();
+                Config.PROTECTION_SEARCH_TEMPORARY_RADIUS.getInt());
+        placeNeededNearbyCountToProtect = Config.PROTECTION_BLOCK_COUNT_TO_PROTECT.getInt();
 
         deletePortalRadius = new ProtectionRadius(breakRadius.getBlockRadius() + 1);
 

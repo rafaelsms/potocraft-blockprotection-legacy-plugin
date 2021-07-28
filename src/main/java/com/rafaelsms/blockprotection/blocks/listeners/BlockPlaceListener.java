@@ -1,6 +1,7 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
+import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.blocks.events.AttemptMultiPlaceEvent;
 import com.rafaelsms.blockprotection.blocks.events.AttemptPlaceEvent;
 import com.rafaelsms.blockprotection.blocks.events.PlaceEvent;
@@ -12,7 +13,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.BlockMultiPlaceEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.world.PortalCreateEvent;
@@ -88,7 +91,7 @@ public record BlockPlaceListener(BlockProtectionPlugin plugin) implements Listen
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onSpreadBlock(BlockSpreadEvent event) {
         // Check if we need to skip fire altogether
-        if (event.getSource().getType() == Material.FIRE) {
+        if (event.getSource().getType() == Material.FIRE && Config.PROTECTION_PREVENT_FIRE_SPREAD.getBoolean()) {
             event.getSource().setType(Material.AIR);
             event.setCancelled(true);
         }

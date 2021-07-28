@@ -166,6 +166,11 @@ public class ProtectionBlockListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onExplosionPrime(ExplosionPrimeEvent event) {
+        // Ignore if we already prevent explosions from happening
+        if (Config.PROTECTION_PREVENT_PLAYER_EXPLOSIONS.getBoolean()) {
+            return;
+        }
+
         // Ignore other worlds
         if (!protectedWorlds.contains(event.getEntity().getWorld().getUID())) {
             return;
@@ -179,7 +184,7 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Make explosion radius half of normal radius
-        event.setRadius(event.getRadius() / 2.0f);
+        event.setRadius((float) (event.getRadius() * Config.PROTECTION_EXPLOSION_RADIUS_MULTIPLIER.getDouble()));
     }
 
     @SuppressWarnings("DefaultAnnotationParam")
@@ -240,7 +245,7 @@ public class ProtectionBlockListener implements Listener {
             player.sendMessage(Lang.PROTECTION_DEBUG_LIST_TITLE.toColoredString().formatted(blockString));
             for (ProtectedBlock protectedBlock : protectedBlocks) {
                 player.sendMessage(Lang.PROTECTION_DEBUG_LIST_TEXT.toColoredString()
-                                           .formatted(protectedBlock.toString(plugin)));
+                        .formatted(protectedBlock.toString(plugin)));
             }
         }
 
@@ -330,12 +335,16 @@ public class ProtectionBlockListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void onVehicleEnter(VehicleEnterEvent event) {
+        // Ignore if we aren't preventing vehicle enter
+        if (!Config.PROTECTION_PREVENT_VEHICLE_ENTER.getBoolean()) {
+            return;
+        }
+
         // Ignore non players
         if (event.getEntered().getType() != EntityType.PLAYER) {
             return;
         }
         Player player = (Player) event.getEntered();
-
 
         // Ignore admin permission to override block interaction
         if (player.hasPermission(Permission.PROTECTION_OVERRIDE.toString())) {
@@ -391,6 +400,11 @@ public class ProtectionBlockListener implements Listener {
             return;
         }
 
+        // Ignore on config
+        if (!Config.PROTECTION_CHECK_PATH_TO_INVENTORY_HOLDER.getBoolean()) {
+            return;
+        }
+
         // Avoid any check when not in a protected environment
         if (shouldIgnore(block, null)) {
             return;
@@ -430,6 +444,18 @@ public class ProtectionBlockListener implements Listener {
             return;
         }
 
+        // Check if ignoring chorus fruit
+        if (!Config.PROTECTION_PREVENT_CHORUS_FRUIT_TELEPORT.getBoolean() &&
+                    event.getCause() == PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT) {
+            return;
+        }
+
+        // Check if ignoring enderpearl
+        if (!Config.PROTECTION_PREVENT_ENDERPEARL_TELEPORT.getBoolean() &&
+                    event.getCause() == PlayerTeleportEvent.TeleportCause.ENDER_PEARL) {
+            return;
+        }
+
         // Ignore null destinations
         if (event.getTo() == null) {
             return;
@@ -450,6 +476,11 @@ public class ProtectionBlockListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     private void onBedEnter(PlayerBedEnterEvent event) {
+        // Check config for this event
+        if (!Config.PROTECTION_PREVENT_BED_ENTER.getBoolean()) {
+            return;
+        }
+
         Block block = event.getBed();
         // Avoid any check when not in a protected environment
         if (shouldIgnore(block, event.getPlayer())) {
@@ -474,6 +505,11 @@ public class ProtectionBlockListener implements Listener {
     private void onLavaFlow(BlockFromToEvent event) {
         // Check if block is lava
         if (event.getBlock().getType() != Material.LAVA) {
+            return;
+        }
+
+        // Check if we should prevent this
+        if (!Config.PROTECTION_PREVENT_LAVA_SPREAD.getBoolean()) {
             return;
         }
 
@@ -521,8 +557,8 @@ public class ProtectionBlockListener implements Listener {
         }
 
         final List<Location> locations = event.getBlocks().stream()
-                                                 .map(Block::getLocation)
-                                                 .collect(Collectors.toList());
+                .map(Block::getLocation)
+                .collect(Collectors.toList());
         final World world = locations.get(0).getWorld();
 
         // Check if there are protected blocks nearby
@@ -568,8 +604,8 @@ public class ProtectionBlockListener implements Listener {
         }
 
         final List<Location> locations = event.getBlocks().stream()
-                                                 .map(Block::getLocation)
-                                                 .collect(Collectors.toList());
+                .map(Block::getLocation)
+                .collect(Collectors.toList());
         final World world = locations.get(0).getWorld();
 
         // Check if there are protected blocks nearby
@@ -604,8 +640,8 @@ public class ProtectionBlockListener implements Listener {
         }
 
         final List<Location> locations = event.getBlocks().stream()
-                                                 .map(Block::getLocation)
-                                                 .collect(Collectors.toList());
+                .map(Block::getLocation)
+                .collect(Collectors.toList());
 
         // Asynchronously remove from database
         plugin.getBlocksDatabase().deleteBlocksAsync(locations);

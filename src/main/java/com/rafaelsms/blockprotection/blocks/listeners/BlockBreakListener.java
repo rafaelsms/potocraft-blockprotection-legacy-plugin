@@ -1,6 +1,7 @@
 package com.rafaelsms.blockprotection.blocks.listeners;
 
 import com.rafaelsms.blockprotection.BlockProtectionPlugin;
+import com.rafaelsms.blockprotection.Config;
 import com.rafaelsms.blockprotection.blocks.events.AttemptBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.AttemptMultiBreakEvent;
 import com.rafaelsms.blockprotection.blocks.events.BreakEvent;
@@ -23,13 +24,23 @@ public record BlockBreakListener(BlockProtectionPlugin plugin) implements Listen
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     private void onEntityExplodeBlocks(EntityExplodeEvent event) {
-        // Ignore explosives
-        if (event.getEntityType() == EntityType.PRIMED_TNT ||
+        // Ignore player explosives based on config
+        if ((event.getEntityType() == EntityType.PRIMED_TNT ||
                     event.getEntityType() == EntityType.MINECART_TNT ||
-                    event.getEntityType() == EntityType.ENDER_CRYSTAL) {
+                    event.getEntityType() == EntityType.ENDER_CRYSTAL) &&
+                    !Config.PROTECTION_PREVENT_PLAYER_EXPLOSIONS.getBoolean()) {
             return;
         }
 
+        // Ignore hostiles explosions based on config
+        if ((event.getEntityType() == EntityType.WITHER ||
+                    event.getEntityType() == EntityType.WITHER_SKULL ||
+                    event.getEntityType() == EntityType.CREEPER) &&
+                    !Config.PROTECTION_PREVENT_HOSTILES_EXPLOSIONS.getBoolean()) {
+            return;
+        }
+
+        // Check nearby blocks for protection
         AttemptMultiBreakEvent breakEvent = new AttemptMultiBreakEvent(event.blockList());
         plugin.getServer().getPluginManager().callEvent(breakEvent);
 

@@ -26,7 +26,8 @@ public class BlockProtectionPlugin extends JavaPlugin {
     private BlockPistonListener blockPistonListener;
     private BlockPlaceListener blockPlaceListener;
     private ProtectionBlockListener protectionBlockListener;
-    private DoorListener doorListener;
+    // Optional listener
+    private DoorListener doorListener = null;
 
     private ListCommand listCommand;
     private AddCommand addCommand;
@@ -72,14 +73,18 @@ public class BlockProtectionPlugin extends JavaPlugin {
             blockPistonListener = new BlockPistonListener(this);
             blockPlaceListener = new BlockPlaceListener(this);
             protectionBlockListener = new ProtectionBlockListener(this);
-            doorListener = new DoorListener();
 
             // Register listeners
             getServer().getPluginManager().registerEvents(blockBreakListener, this);
             getServer().getPluginManager().registerEvents(blockPistonListener, this);
             getServer().getPluginManager().registerEvents(blockPlaceListener, this);
             getServer().getPluginManager().registerEvents(protectionBlockListener, this);
-            getServer().getPluginManager().registerEvents(doorListener, this);
+
+            // Conditionally check door listener
+            if (Config.PROTECTION_ALLOW_HAND_OPENING_IRON_DOOR.getBoolean()) {
+                doorListener = new DoorListener();
+                getServer().getPluginManager().registerEvents(doorListener, this);
+            }
 
             // Initialize commands
             listCommand = new ListCommand(this);

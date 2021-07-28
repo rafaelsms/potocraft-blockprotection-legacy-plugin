@@ -49,19 +49,38 @@ config:
     protected_for_days: 10
     minimum_height_to_protect: 36
 
-    # Radius to protect against break, place and interact
-    # Break: must be less or equal to half place radius
-    protection_break_radius: 7
-    protection_place_radius: 14
-    # Interact: must be less than break radius
-    protection_interact_radius: 6
+    protection_radius:
+      # Radius to protect against break, place and interact
+      # Break: must be less or equal to half place radius
+      break_radius: 7
+      place_radius: 14
+      # Interact: must be less than break radius
+      interact_radius: 6
 
-    # Radius to update protection time for old blocks on place
-    protection_place_update_time_radius: 14
-    # Search for temporary blocks radius on place
-    protection_place_search_temporary_radius: 5
-    # Amount of temporary blocks to update nearby blocks as protected blocks when placing
-    protection_place_block_count_to_protect: 26
+    update_protection_radius:
+      # Radius to update protection time for old blocks on place
+      update_time_radius: 14
+
+      # Search for temporary blocks radius on place
+      search_temporary_radius: 5
+      # Amount of temporary blocks to update nearby blocks as protected blocks when placing
+      block_count_to_protect_temporary: 26
+
+    options:
+      allow_hand_opening_iron_doors: true
+      # Prevent TNT and End crystal destroying protected blocks
+      prevent_player_explosion: false
+      # Prevent creeper, wither skull and wither explosions
+      prevent_hostiles_explosions: true
+      explosion_radius_multiplier: 0.4
+      prevent_fire_spread: true
+      prevent_lava_spread: true
+      prevent_vehicle_enter: true
+      # If we should check if there is a block in between the player and the inventory holder and deny if there is
+      check_open_inventory_holder: true
+      prevent_chorus_fruit_teleport: true
+      prevent_enderpearl_teleport: true
+      prevent_bed_enter: true
 
     protected_worlds:
       - world
