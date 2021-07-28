@@ -342,21 +342,22 @@ public class BlocksDatabase extends Database {
                     )
                 LIMIT 1;
                 """;
-        try (Connection connection = getDataSource().getConnection();
-             PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_USER)) {
-            setLocation(statement, location, radius, 0);
-            // time interval
-            statement.setInt(12, daysProtected);
-            // player
-            statement.setString(13, player.toString());
-            statement.setString(14, player.toString());
+        try (Connection connection = getDataSource().getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(SQL_QUERY_BLOCKS_USER)) {
+                setLocation(statement, location, radius, 0);
+                // time interval
+                statement.setInt(12, daysProtected);
+                // player
+                statement.setString(13, player.toString());
+                statement.setString(14, player.toString());
 
-            try (ResultSet result = statement.executeQuery()) {
-                // Return owner or not protected
-                if (result.next()) {
-                    return new ProtectionQuery(UUID.fromString(result.getString(1)));
-                } else {
-                    return new ProtectionQuery(ProtectionQuery.Result.NOT_PROTECTED);
+                try (ResultSet result = statement.executeQuery()) {
+                    // Return owner or not protected
+                    if (result.next()) {
+                        return new ProtectionQuery(UUID.fromString(result.getString(1)));
+                    } else {
+                        return new ProtectionQuery(ProtectionQuery.Result.NOT_PROTECTED);
+                    }
                 }
             }
         } catch (SQLException exception) {
@@ -489,7 +490,8 @@ public class BlocksDatabase extends Database {
         );
     }
 
-    public void insertBlock(Location location, UUID owner, ProtectionRadius updateRadius,
+    public void insertBlock(Location location, UUID owner,
+                            ProtectionRadius updateRadius,
                             ProtectionRadius searchRadius, int blockCountToProtect) {
         final String SQL_INSERT_BLOCK = """
                 INSERT INTO `blocks` (
@@ -507,6 +509,8 @@ public class BlocksDatabase extends Database {
                 ) ON DUPLICATE KEY UPDATE `owner` = UUID_TO_BIN(?);
                 """;
         try (Connection connection = getDataSource().getConnection()) {
+            connection.setAutoCommit(false);
+
             try (PreparedStatement insertStatement = connection.prepareStatement(SQL_INSERT_BLOCK)) {
                 setLocation(insertStatement, location, 0);
                 // Owner
@@ -516,126 +520,125 @@ public class BlocksDatabase extends Database {
             }
 
             // Search and update temporary blocks nearby
-            if (searchRadius != null && searchRadius.getBlockRadius() > 0) {
-                final String SQL_COUNT_NEARBY_BLOCKS = """
-                SELECT
-                    COUNT(*)
-                FROM `blocks`
-                WHERE
-                    `blocks`.`world` = UUID_TO_BIN(?) AND
-                    `blocks`.`chunkX` BETWEEN ? AND ? AND
-                    `blocks`.`chunkZ` BETWEEN ? AND ? AND
-                    `blocks`.`x` BETWEEN ? AND ? AND
-                    `blocks`.`y` BETWEEN ? AND ? AND
-                    `blocks`.`z` BETWEEN ? AND ? AND
-                    (
-                        `blocks`.`owner` = UUID_TO_BIN(?) OR
-                        UUID_TO_BIN(?) IN (
-                            SELECT
-                                `friends`.`player`
-                            FROM `friends`
-                            WHERE
-                                `friends`.`friend` = `blocks`.`owner`
-                        )
-                    );
-                """;
-
-                try (PreparedStatement countStatement = connection.prepareStatement(SQL_COUNT_NEARBY_BLOCKS)) {
-                    setLocation(countStatement, location, searchRadius, 0);
-                    // Owner
-                    countStatement.setString(12, owner.toString());
-                    countStatement.setString(13, owner.toString());
-
-                    int nearbyBlocks;
-                    try (ResultSet countResult = countStatement.executeQuery()) {
-                        if (countResult.next()) {
-                            nearbyBlocks = countResult.getInt(1);
-                        } else {
-                            nearbyBlocks = 0;
-                        }
-                    }
-
-                    // Exit if count result is less than needed
-                    if (nearbyBlocks < blockCountToProtect) {
-                        return;
-                    }
-                }
-
-                final String SQL_UPDATE_NEARBY_BLOCKS = """
-                UPDATE
-                    `blocks`
-                SET
-                    `blocks`.`temporaryBlock` = FALSE
-                WHERE
-                    `blocks`.`world` = UUID_TO_BIN(?) AND
-                    `blocks`.`chunkX` BETWEEN ? AND ? AND
-                    `blocks`.`chunkZ` BETWEEN ? AND ? AND
-                    `blocks`.`x` BETWEEN ? AND ? AND
-                    `blocks`.`y` BETWEEN ? AND ? AND
-                    `blocks`.`z` BETWEEN ? AND ? AND
-                    (
-                        `blocks`.`owner` = UUID_TO_BIN(?) OR
-                        UUID_TO_BIN(?) IN (
-                            SELECT
-                                `friends`.`player`
-                            FROM `friends`
-                            WHERE
-                                `friends`.`friend` = `blocks`.`owner`
-                        )
-                    );
-                """;
-                try (PreparedStatement updateStatement = connection.prepareStatement(SQL_UPDATE_NEARBY_BLOCKS)) {
-                    setLocation(updateStatement, location, searchRadius, 0);
-                    // Owner
-                    updateStatement.setString(12, owner.toString());
-                    updateStatement.setString(13, owner.toString());
-                    updateStatement.executeUpdate();
-                }
-            }
-
-            // Search and update all blocks for time
-            if (updateRadius != null && updateRadius.getBlockRadius() > 0) {
-                final String SQL_UPDATE_TIME = """
-                UPDATE `blocks`
-                SET
-                    `blocks`.`lastModification` = NOW(),
-                    `blocks`.`owner` = UUID_TO_BIN(?)
-                WHERE
-                    `blocks`.`world` = UUID_TO_BIN(?) AND
-                    `blocks`.`chunkX` BETWEEN ? AND ? AND
-                    `blocks`.`chunkZ` BETWEEN ? AND ? AND
-                    `blocks`.`x` BETWEEN ? AND ? AND
-                    `blocks`.`y` BETWEEN ? AND ? AND
-                    `blocks`.`z` BETWEEN ? AND ? AND (
+            final String SQL_COUNT_NEARBY_BLOCKS = """
+                    SELECT
+                        COUNT(*)
+                    FROM `blocks`
+                    WHERE
+                        `blocks`.`world` = UUID_TO_BIN(?) AND
+                        `blocks`.`chunkX` BETWEEN ? AND ? AND
+                        `blocks`.`chunkZ` BETWEEN ? AND ? AND
+                        `blocks`.`x` BETWEEN ? AND ? AND
+                        `blocks`.`y` BETWEEN ? AND ? AND
+                        `blocks`.`z` BETWEEN ? AND ? AND
                         (
                             `blocks`.`owner` = UUID_TO_BIN(?) OR
                             UUID_TO_BIN(?) IN (
                                 SELECT
-                                    `friends`.`friend`
+                                    `friends`.`player`
                                 FROM `friends`
                                 WHERE
-                                    `friends`.`player` = `blocks`.`owner`
+                                    `friends`.`friend` = `blocks`.`owner`
                             )
-                        ) OR (
-                            `blocks`.`lastModification` < (NOW() - INTERVAL ? DAY) AND
-                            `blocks`.`temporaryBlock` = FALSE
-                        )
-                    );
-                """;
-                try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME)) {
-                    // Set owner
-                    statement.setString(1, owner.toString());
-                    // Set location
-                    setLocation(statement, location, updateRadius, 1);
-                    // Set owner
-                    statement.setString(13, owner.toString());
-                    statement.setString(14, owner.toString());
-                    // Set time
-                    statement.setInt(15, daysProtected);
-                    // Execute
-                    statement.execute();
+                        );
+                    """;
+
+            try (PreparedStatement countStatement = connection.prepareStatement(SQL_COUNT_NEARBY_BLOCKS)) {
+                setLocation(countStatement, location, searchRadius, 0);
+                // Owner
+                countStatement.setString(12, owner.toString());
+                countStatement.setString(13, owner.toString());
+
+                int nearbyBlocks;
+                try (ResultSet countResult = countStatement.executeQuery()) {
+                    if (countResult.next()) {
+                        nearbyBlocks = countResult.getInt(1);
+                    } else {
+                        nearbyBlocks = 0;
+                    }
+                }
+
+                // Exit if count result is less than needed
+                if (nearbyBlocks < blockCountToProtect) {
+                    return;
                 }
             }
+
+            final String SQL_UPDATE_NEARBY_BLOCKS = """
+                    UPDATE
+                        `blocks`
+                    SET
+                        `blocks`.`temporaryBlock` = FALSE
+                    WHERE
+                        `blocks`.`world` = UUID_TO_BIN(?) AND
+                        `blocks`.`chunkX` BETWEEN ? AND ? AND
+                        `blocks`.`chunkZ` BETWEEN ? AND ? AND
+                        `blocks`.`x` BETWEEN ? AND ? AND
+                        `blocks`.`y` BETWEEN ? AND ? AND
+                        `blocks`.`z` BETWEEN ? AND ? AND
+                        (
+                            `blocks`.`owner` = UUID_TO_BIN(?) OR
+                            UUID_TO_BIN(?) IN (
+                                SELECT
+                                    `friends`.`player`
+                                FROM `friends`
+                                WHERE
+                                    `friends`.`friend` = `blocks`.`owner`
+                            )
+                        );
+                    """;
+            try (PreparedStatement updateStatement = connection.prepareStatement(SQL_UPDATE_NEARBY_BLOCKS)) {
+                setLocation(updateStatement, location, searchRadius, 0);
+                // Owner
+                updateStatement.setString(12, owner.toString());
+                updateStatement.setString(13, owner.toString());
+                updateStatement.executeUpdate();
+            }
+
+            // Search and update all blocks for time
+            final String SQL_UPDATE_TIME = """
+                    UPDATE `blocks`
+                    SET
+                        `blocks`.`lastModification` = NOW(),
+                        `blocks`.`owner` = UUID_TO_BIN(?)
+                    WHERE
+                        `blocks`.`world` = UUID_TO_BIN(?) AND
+                        `blocks`.`chunkX` BETWEEN ? AND ? AND
+                        `blocks`.`chunkZ` BETWEEN ? AND ? AND
+                        `blocks`.`x` BETWEEN ? AND ? AND
+                        `blocks`.`y` BETWEEN ? AND ? AND
+                        `blocks`.`z` BETWEEN ? AND ? AND (
+                            (
+                                `blocks`.`owner` = UUID_TO_BIN(?) OR
+                                UUID_TO_BIN(?) IN (
+                                    SELECT
+                                        `friends`.`friend`
+                                    FROM `friends`
+                                    WHERE
+                                        `friends`.`player` = `blocks`.`owner`
+                                )
+                            ) OR (
+                                `blocks`.`lastModification` < (NOW() - INTERVAL ? DAY) AND
+                                `blocks`.`temporaryBlock` = FALSE
+                            )
+                        );
+                    """;
+            try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME)) {
+                // Set owner
+                statement.setString(1, owner.toString());
+                // Set location
+                setLocation(statement, location, updateRadius, 1);
+                // Set owner
+                statement.setString(13, owner.toString());
+                statement.setString(14, owner.toString());
+                // Set time
+                statement.setInt(15, daysProtected);
+                // Execute
+                statement.execute();
+            }
+
+            connection.commit();
+            connection.setAutoCommit(true);
         } catch (SQLException exception) {
             plugin.getLogger().severe("Failed to insert block on database: %s".formatted(exception.getMessage()));
             exception.printStackTrace();
