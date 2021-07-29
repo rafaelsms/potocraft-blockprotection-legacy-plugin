@@ -22,7 +22,6 @@ public class BlocksDatabase extends Database {
     private final ProtectionRadius breakRadius;
     private final ProtectionRadius interactRadius;
 
-    private final ProtectionRadius placeUpdateTimeRadius;
     private final ProtectionRadius placeSearchRadiusForTemporary;
     private final int placeNeededNearbyCountToProtect;
 
@@ -38,7 +37,6 @@ public class BlocksDatabase extends Database {
         placeRadius = new ProtectionRadius(Config.PROTECTION_PLACE_RADIUS.getInt());
         interactRadius = new ProtectionRadius(Config.PROTECTION_INTERACT_RADIUS.getInt());
 
-        placeUpdateTimeRadius = new ProtectionRadius(Config.PROTECTION_UPDATE_TIME_RADIUS.getInt());
         placeSearchRadiusForTemporary = new ProtectionRadius(
                 Config.PROTECTION_SEARCH_TEMPORARY_RADIUS.getInt());
         placeNeededNearbyCountToProtect = Config.PROTECTION_BLOCK_COUNT_TO_PROTECT.getInt();
@@ -476,22 +474,18 @@ public class BlocksDatabase extends Database {
     }
 
     public void insertBlockAsync(Location location, UUID owner) {
-        insertBlockAsync(
-                location, owner,
-                placeUpdateTimeRadius, placeSearchRadiusForTemporary, placeNeededNearbyCountToProtect
-        );
+        insertBlockAsync(location, owner, placeSearchRadiusForTemporary, placeNeededNearbyCountToProtect);
     }
 
-    public void insertBlockAsync(Location location, UUID owner, ProtectionRadius updateRadius,
+    public void insertBlockAsync(Location location, UUID owner,
                                  ProtectionRadius searchRadius, int blockCountToProtect) {
         plugin.getServer().getScheduler().runTaskAsynchronously(
                 plugin,
-                () -> insertBlock(location, owner, updateRadius, searchRadius, blockCountToProtect)
+                () -> insertBlock(location, owner, searchRadius, blockCountToProtect)
         );
     }
 
     public void insertBlock(Location location, UUID owner,
-                            ProtectionRadius updateRadius,
                             ProtectionRadius searchRadius, int blockCountToProtect) {
         final String SQL_INSERT_BLOCK = """
                 INSERT INTO `blocks` (
@@ -568,6 +562,7 @@ public class BlocksDatabase extends Database {
                     UPDATE
                         `blocks`
                     SET
+                        `blocks`.`owner` = UUID_TO_BIN(?),
                         `blocks`.`temporaryBlock` = FALSE
                     WHERE
                         `blocks`.`world` = UUID_TO_BIN(?) AND
@@ -588,53 +583,12 @@ public class BlocksDatabase extends Database {
                         );
                     """;
             try (PreparedStatement updateStatement = connection.prepareStatement(SQL_UPDATE_NEARBY_BLOCKS)) {
-                setLocation(updateStatement, location, searchRadius, 0);
+                updateStatement.setString(1, owner.toString());
+                setLocation(updateStatement, location, searchRadius, 1);
                 // Owner
-                updateStatement.setString(12, owner.toString());
                 updateStatement.setString(13, owner.toString());
+                updateStatement.setString(14, owner.toString());
                 updateStatement.executeUpdate();
-            }
-
-            // Search and update all blocks for time
-            final String SQL_UPDATE_TIME = """
-                    UPDATE `blocks`
-                    SET
-                        `blocks`.`lastModification` = NOW(),
-                        `blocks`.`owner` = UUID_TO_BIN(?)
-                    WHERE
-                        `blocks`.`world` = UUID_TO_BIN(?) AND
-                        `blocks`.`chunkX` BETWEEN ? AND ? AND
-                        `blocks`.`chunkZ` BETWEEN ? AND ? AND
-                        `blocks`.`x` BETWEEN ? AND ? AND
-                        `blocks`.`y` BETWEEN ? AND ? AND
-                        `blocks`.`z` BETWEEN ? AND ? AND (
-                            (
-                                `blocks`.`owner` = UUID_TO_BIN(?) OR
-                                UUID_TO_BIN(?) IN (
-                                    SELECT
-                                        `friends`.`friend`
-                                    FROM `friends`
-                                    WHERE
-                                        `friends`.`player` = `blocks`.`owner`
-                                )
-                            ) OR (
-                                `blocks`.`lastModification` < (NOW() - INTERVAL ? DAY) AND
-                                `blocks`.`temporaryBlock` = FALSE
-                            )
-                        );
-                    """;
-            try (PreparedStatement statement = connection.prepareStatement(SQL_UPDATE_TIME)) {
-                // Set owner
-                statement.setString(1, owner.toString());
-                // Set location
-                setLocation(statement, location, updateRadius, 1);
-                // Set owner
-                statement.setString(13, owner.toString());
-                statement.setString(14, owner.toString());
-                // Set time
-                statement.setInt(15, daysProtected);
-                // Execute
-                statement.execute();
             }
 
             connection.commit();

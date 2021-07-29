@@ -22,8 +22,6 @@ public enum Config {
     PROTECTION_INTERACT_RADIUS("config.protection.protection_radius.interact_radius"),
 
     // Update on place protection radius
-    PROTECTION_UPDATE_TIME_RADIUS("config.protection.update_protection_radius.update_time_radius"),
-
     PROTECTION_SEARCH_TEMPORARY_RADIUS("config.protection.update_protection_radius.search_temporary_radius"),
     PROTECTION_BLOCK_COUNT_TO_PROTECT("config.protection.update_protection_radius.block_count_to_protect_temporary"),
 

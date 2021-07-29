@@ -58,9 +58,6 @@ config:
       interact_radius: 6
 
     update_protection_radius:
-      # Radius to update protection time for old blocks on place
-      update_time_radius: 14
-
       # Search for temporary blocks radius on place
       search_temporary_radius: 5
       # Amount of temporary blocks to update nearby blocks as protected blocks when placing
