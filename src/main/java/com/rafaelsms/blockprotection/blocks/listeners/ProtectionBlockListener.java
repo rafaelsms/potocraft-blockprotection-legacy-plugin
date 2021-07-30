@@ -184,7 +184,8 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Make explosion radius half of normal radius
-        event.setRadius((float) (event.getRadius() * Config.PROTECTION_EXPLOSION_RADIUS_MULTIPLIER.getDouble()));
+        double newRadius = Math.ceil(event.getRadius() * Config.PROTECTION_EXPLOSION_RADIUS_MULTIPLIER.getDouble());
+        event.setRadius((float) newRadius);
     }
 
     @SuppressWarnings("DefaultAnnotationParam")

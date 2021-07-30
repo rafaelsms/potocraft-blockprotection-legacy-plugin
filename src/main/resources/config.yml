@@ -67,9 +67,9 @@ config:
       allow_hand_opening_iron_doors: true
       # Prevent TNT and End crystal destroying protected blocks
       prevent_player_explosion: false
+      explosion_radius_multiplier: 0.4
       # Prevent creeper, wither skull and wither explosions
       prevent_hostiles_explosions: true
-      explosion_radius_multiplier: 0.4
       prevent_fire_spread: true
       prevent_lava_spread: true
       prevent_vehicle_enter: true
