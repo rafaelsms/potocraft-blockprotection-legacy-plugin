@@ -34,6 +34,7 @@ public enum Config {
     PROTECTION_PREVENT_LAVA_SPREAD("config.protection.options.prevent_lava_spread"),
     PROTECTION_PREVENT_VEHICLE_ENTER("config.protection.options.prevent_vehicle_enter"),
     PROTECTION_CHECK_PATH_TO_INVENTORY_HOLDER("config.protection.options.check_open_inventory_holder"),
+    PROTECTION_CHECK_PATH_TO_END_CRYSTAL("config.protection.options.check_place_end_crystal"),
     PROTECTION_PREVENT_CHORUS_FRUIT_TELEPORT("config.protection.options.prevent_chorus_fruit_teleport"),
     PROTECTION_PREVENT_ENDERPEARL_TELEPORT("config.protection.options.prevent_enderpearl_teleport"),
     PROTECTION_PREVENT_BED_ENTER("config.protection.options.prevent_bed_enter"),

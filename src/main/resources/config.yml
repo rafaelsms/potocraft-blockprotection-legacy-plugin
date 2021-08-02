@@ -75,6 +75,7 @@ config:
       prevent_vehicle_enter: true
       # If we should check if there is a block in between the player and the inventory holder and deny if there is
       check_open_inventory_holder: true
+      check_place_end_crystal: true
       prevent_chorus_fruit_teleport: true
       prevent_enderpearl_teleport: true
       prevent_bed_enter: true

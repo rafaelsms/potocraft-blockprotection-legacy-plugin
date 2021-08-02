@@ -438,6 +438,60 @@ public class ProtectionBlockListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    private void onEndCrystalPlace(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        Player player = event.getPlayer();
+
+        // Ignore when interacting with no blocks
+        if (block == null) {
+            return;
+        }
+
+        // Ignore on config
+        if (!Config.PROTECTION_CHECK_PATH_TO_END_CRYSTAL.getBoolean()) {
+            return;
+        }
+
+        // Avoid any check when not in a protected environment
+        if (shouldIgnore(block, null)) {
+            return;
+        }
+
+        // Check if action is right click to place
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_AIR) {
+            return;
+        }
+
+        // Check if we have end crystal on hand
+        if (event.getItem() != null && event.getItem().getType() != Material.END_CRYSTAL) {
+            return;
+        }
+
+        // Get line of sight of player
+        final BlockKey blockKey = BlockKey.fromBlock(block);
+        for (Block next : player.getLineOfSight(null, 5)) {
+            // Skip empty or liquid
+            if (next.isEmpty() || next.isLiquid()) {
+                continue;
+            }
+
+            // Skip weaker than glass materials (carpet, torches)
+            if (next.getType().getBlastResistance() < Material.GLASS.getBlastResistance()) {
+                continue;
+            }
+
+            // Check if next block is the inventory holder
+            if (!blockKey.equals(BlockKey.fromBlock(next))) {
+                // If it doesn't, cancel the event and return
+                event.setCancelled(true);
+                event.setUseInteractedBlock(Event.Result.DENY);
+                event.setUseItemInHand(Event.Result.DENY);
+                return;
+            }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
     private void onTeleport(PlayerTeleportEvent event) {
         // Filter chorus fruit
         if (event.getCause() != PlayerTeleportEvent.TeleportCause.CHORUS_FRUIT &&
