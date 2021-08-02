@@ -122,7 +122,7 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Check height
-        if (block.getY() < minimumProtectedHeight) {
+        if (block.getY() < (minimumProtectedHeight - plugin.getBlocksDatabase().getPlaceRadius().getBlockRadius())) {
             Lang.PROTECTION_UNDER_MINIMUM_HEIGHT.sendActionBar(player);
             return true;
         }
