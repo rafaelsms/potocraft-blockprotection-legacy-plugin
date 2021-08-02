@@ -477,7 +477,7 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Check if we have end crystal on hand
-        if (event.getItem() != null && event.getItem().getType() != Material.END_CRYSTAL) {
+        if (event.getItem() == null || event.getItem().getType() != Material.END_CRYSTAL) {
             return;
         }
 
