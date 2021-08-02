@@ -25,6 +25,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -389,6 +390,19 @@ public class ProtectionBlockListener implements Listener {
 
         // Warn player about portal protection
         Lang.PROTECTION_PORTAL_CREATE_UNPROTECTED.sendMessage(event.getEntity());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    private void onSuffocationDamage(EntityDamageEvent event) {
+        if (event.getEntityType() != EntityType.PLAYER) {
+            return;
+        }
+
+        if (event.getCause() != EntityDamageEvent.DamageCause.SUFFOCATION) {
+            return;
+        }
+
+        event.setDamage(event.getFinalDamage() * Config.PROTECTION_EXPLOSION_RADIUS_MULTIPLIER.getDouble());
     }
 
     @EventHandler(ignoreCancelled = true)
