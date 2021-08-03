@@ -12,10 +12,7 @@ import com.rafaelsms.blockprotection.util.ProtectionQuery;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -405,6 +402,13 @@ public class ProtectionBlockListener implements Listener {
         event.setDamage(event.getFinalDamage() * Config.PROTECTION_EXPLOSION_RADIUS_MULTIPLIER.getDouble());
     }
 
+    private boolean invalidLineOfSight(Player player, Block pretendedTarget) {
+        final BlockKey blockKey = BlockKey.fromBlock(pretendedTarget);
+        final Block targetBlockExact = player.getTargetBlockExact(5, FluidCollisionMode.NEVER);
+        // Check if next block is the inventory holder
+        return targetBlockExact == null || !Objects.equals(blockKey, BlockKey.fromBlock(targetBlockExact));
+    }
+
     @EventHandler(ignoreCancelled = true)
     private void onOpenInventoryHolder(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
@@ -426,28 +430,11 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Check if is inventory holder
-        if (block.getState() instanceof InventoryHolder) {
-            // Get line of sight of player
-            for (Block next : player.getLineOfSight(null, 5)) {
-                // Skip empty or liquid
-                if (next.isEmpty() || next.isLiquid()) {
-                    continue;
-                }
-
-                // Skip weaker than glass materials (carpet, torches)
-                if (next.getType().getBlastResistance() < Material.GLASS.getBlastResistance()) {
-                    continue;
-                }
-
-                // Check if next block is the inventory holder
-                if (!BlockKey.fromBlock(block).equals(BlockKey.fromBlock(next))) {
-                    // If it doesn't, cancel the event and return
-                    event.setCancelled(true);
-                    event.setUseInteractedBlock(Event.Result.DENY);
-                    event.setUseItemInHand(Event.Result.DENY);
-                    return;
-                }
-            }
+        if (block.getState() instanceof InventoryHolder && invalidLineOfSight(player, block)) {
+            // If it doesn't, cancel the event and return
+            event.setCancelled(true);
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
         }
     }
 
@@ -482,26 +469,10 @@ public class ProtectionBlockListener implements Listener {
         }
 
         // Get line of sight of player
-        final BlockKey blockKey = BlockKey.fromBlock(block);
-        for (Block next : player.getLineOfSight(null, 5)) {
-            // Skip empty or liquid
-            if (next.isEmpty() || next.isLiquid()) {
-                continue;
-            }
-
-            // Skip weaker than glass materials (carpet, torches)
-            if (next.getType().getBlastResistance() < Material.GLASS.getBlastResistance()) {
-                continue;
-            }
-
-            // Check if next block is the inventory holder
-            if (!blockKey.equals(BlockKey.fromBlock(next))) {
-                // If it doesn't, cancel the event and return
-                event.setCancelled(true);
-                event.setUseInteractedBlock(Event.Result.DENY);
-                event.setUseItemInHand(Event.Result.DENY);
-                return;
-            }
+        if (invalidLineOfSight(player, block)) {
+            event.setCancelled(true);
+            event.setUseInteractedBlock(Event.Result.DENY);
+            event.setUseItemInHand(Event.Result.DENY);
         }
     }
 
@@ -632,7 +603,7 @@ public class ProtectionBlockListener implements Listener {
 
         // Check if there are protected blocks nearby
         ProtectionQuery result = plugin.getBlocksDatabase().isThereBlockingBlocksNearby(
-                world, locations, plugin.getBlocksDatabase().getBreakRadius());
+                world, locations, plugin.getBlocksDatabase().getPlaceRadius());
 
         // Check if it is protected
         if (result.isProtected()) {
@@ -709,6 +680,7 @@ public class ProtectionBlockListener implements Listener {
         }
 
         final List<Location> locations = event.getBlocks().stream()
+                .filter(block -> block.getType() != Material.OBSIDIAN)
                 .map(Block::getLocation)
                 .collect(Collectors.toList());
 
